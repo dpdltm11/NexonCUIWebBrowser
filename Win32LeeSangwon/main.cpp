@@ -324,7 +324,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 		for (int i = 0; i < ret.size(); i++)
 		{
-			if (ret[i] != "bmpimage" && ret[i] != "jpgimage"&& ret[i] != "pngimage")
+			if (ret[i] != "bmpimage" && ret[i] != "jpgimage"&& ret[i] != "pngimage"&& ret[i] != "gifimage")
 			{
 				int fontSize = 15;
 				if (ret[i].substr(ret[i].length() - 5, 5) == "title")
@@ -439,7 +439,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					imageCount++;
 					rect.top += bm.bmHeight;
 				}
-				else if (ret[i] == "jpgimage" || ret[i] == "pngimage")
+				else if (ret[i] == "jpgimage" || ret[i] == "pngimage" || ret[i] == "gifimage")
 				{
 					cout << ret[i] << endl;
 					Gdiplus::GdiplusStartupInput gdiplusStartupInput;
@@ -528,7 +528,7 @@ void getDataFromServer(string uri)
 				if (ret[i].substr(ret[i].length() - 5, 5) == "image")
 				{
 					vector<char> tempimage;
-					if (jpgimages.size() < 10)
+					if (jpgimages.size() < 10)// && (ret[i].substr(ret[i].length() - 9, 3) == "bmp" || (ret[i].substr(ret[i].length() - 9, 3) == "jpg" || ret[i].substr(ret[i].length() - 9, 3) == "png" || ret[i].substr(ret[i].length() - 9, 3) == "gif")))
 						tempimage = getrequest->getImage(ret[i].substr(0, ret[i].length() - 6));
 					else
 						continue;
@@ -553,7 +553,8 @@ void getDataFromServer(string uri)
 								images.push_back(&temp[2]);
 								replace(ret, ret[i], "bmpimage");
 							}
-							else if ((ret[i].substr(ret[i].length() - 9, 3) == "jpg" || ret[i].substr(ret[i].length() - 9, 3) == "png"))
+							//else if ((ret[i].substr(ret[i].length() - 9, 3) == "jpg" || ret[i].substr(ret[i].length() - 9, 3) == "png"|| ret[i].substr(ret[i].length() - 9, 3) == "gif"))
+							else if ((ret[i].find(".jpg") || ret[i].find(".png") || ret[i].find(".gif")) != string::npos)
 							{
 								int imageLen = tempimage.size();
 								char *binary = new char[imageLen];
@@ -564,14 +565,20 @@ void getDataFromServer(string uri)
 									binary[j] = tempimage[k];
 									j++;
 								}
-								if (ret[i].substr(ret[i].length() - 9, 3) == "png")
+								if (ret[i].find(".png") != string::npos)
 								{
 									char *temp = strstr(binary, "PNG");
 									temp = temp - 1;
 									jpgimages.push_back(&temp[0]);
 									replace(ret, ret[i], "pngimage");
 								}
-								else
+								else if (ret[i].find(".gif") != string::npos)
+								{
+									char *temp = strstr(binary, "GIF");
+									jpgimages.push_back(&temp[0]);
+									replace(ret, ret[i], "gifimage");
+								}
+								else if (ret[i].find(".jpg") != string::npos)
 								{
 									char *temp;
 									for (int k = 0; k < imageLen - 4; k++)
@@ -582,7 +589,7 @@ void getDataFromServer(string uri)
 											temp = &binary[k];
 											break;
 										}
-										//45 78 69 66 00 -> EFIF
+										//45 78 69 66 00 -> EXIF
 										else if (binary[k] == 0x45 && binary[k + 1] == 0x78 && binary[k + 2] == 0x69 && binary[k + 3] == 0x66)
 										{
 											temp = &binary[k];

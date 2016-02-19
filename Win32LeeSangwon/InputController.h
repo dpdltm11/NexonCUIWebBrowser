@@ -1,6 +1,7 @@
 #pragma once
 #include "Uri.h"
 #include <vector>
+
 enum STATE {
 	HELPSTATE,
 	GOSTATE,

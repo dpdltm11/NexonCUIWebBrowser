@@ -14,6 +14,6 @@ public:
 	string getPath();
 	string getProtocol();
 	string getHost();
-	string getPort();
+	string getPort(); 
 	Uri Parse(const string &);
-};  // uri
+};

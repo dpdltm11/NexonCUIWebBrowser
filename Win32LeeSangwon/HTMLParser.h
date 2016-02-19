@@ -9,7 +9,6 @@
 #include <unordered_map>
 
 using namespace std;
-using namespace stdext;
 
 enum PARSESTATE {
 	TEXTPARSE,

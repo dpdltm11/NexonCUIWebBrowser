@@ -28,5 +28,4 @@ public:
 	char* HostToIp(const string& host);
 	void die_with_error(char *errorMessage);
 	void die_with_wserror(char *errorMessage);
-
-};  // uri
+};

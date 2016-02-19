@@ -26,13 +26,6 @@ Parser::Parser(const string &result)
 	if (result.length() == 0)
 		return;
 
-	// iterator_t resultEnd = result.end();
-
-	// get query start
-	// iterator_t htmlStart = find(result.begin(), resultEnd, );
-
-	//html = string(htmlStart, resultEnd);
-	
 	vector<string> init = split(result, '\n\n');
 	vector<string> statusArray = split(init[0], ' ');
 
@@ -49,25 +42,8 @@ Parser::Parser(const string &result)
 		else if (result.find("<HTML") != string::npos)
 		{
 			html = string(strstr(result.c_str(), "<HTML"));
-		}
-		
+		}	
 	}
-
-	/*
-	else if (statusArray[0].substr(0, 9) == "<!DOCTYPE")
-	{
-		statusNum = "200";
-		// htmlÀÏ °æ¿ì
-		if (result.find("<html") != string::npos)
-		{
-			html = string(strstr(result.c_str(), "<html"));
-		}
-		else if (result.find("<HTML") != string::npos)
-		{
-			html = string(strstr(result.c_str(), "<HTML"));
-		}
-	}
-	*/
 }
 
 vector<char> Parser::imageParser(const string &imageresult)
@@ -98,13 +74,11 @@ vector<char> Parser::imageParser(const string &imageresult)
 			imageBinary += init[j];
 		}
 	}
-
 	vector<char> data(imageBinary.c_str(), imageBinary.c_str() + imageBinary.length());	
 	return data;
 }
 
 string Parser::getHtml()
-
 {
 	return html;
 }

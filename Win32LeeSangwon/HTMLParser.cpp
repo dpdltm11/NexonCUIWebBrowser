@@ -11,7 +11,6 @@ string replaceAll(const string &str, const string &pattern, const string &replac
 		result.replace(result.begin() + pos, result.begin() + pos + pattern.size(), replace);
 		offset = pos + replace.size();
 	}
-
 	return result;
 }
 
@@ -36,13 +35,10 @@ HTMLParser::HTMLParser(string text)
 	//text = "<html><head><title>response</title></head><body><h1>Hello Web Server!</h1></body></html>";
 	//test2
 	//string url = "\"http://www.codeproject.com/KB/GDI-plus/ImageProcessing2/img.jpg\"" ;
-
 	//string url = " \"http://htmlfive.co.kr/html5/xe/layouts/sketchbook5/img/chrome.png \" ";
 	//text = "<html><head><title>HTML5 오픈 커뮤니티</title></head><body><h1>HTML5 오픈 커뮤니티</h1><p>이 자료는 HTML5 오픈 커뮤니티 에서 배포합니다.</p> <img src =" + url + "></body></html>";
 
 	html = text;
-	//title = removeTag("title");
-	//h1 = removeTag("h1");
 	moreParse(text);
 }
 
@@ -62,45 +58,54 @@ void HTMLParser::moreParse(const string &resource)
 	while (current != htmlEnd)
 	{
 		iterator_t tagStart = find(current, htmlEnd, '<');
-		iterator_t tagEnd = find(tagStart, htmlEnd, '>');            //"://");
+		iterator_t tagEnd = find(tagStart, htmlEnd, '>');
 		string tag(tagStart, tagEnd);
 		tag = tag.erase(0, 1);
-		//PARSESTATE curState = validtag(tag);
 		string tagname = getTag(tag);
-		//int len = tag.length() - tagname.length() - 1;
+		
 		if (tagname == "img")
 		{
 			string src(strstr(tag.c_str(), "src"));
 			vector<string> tempSplit = htmlsplit(src, ' ');
-			src = tempSplit[0].substr(5, tempSplit[0].size() - 5) + "image";
-			result.push_back(src);
+			int s = tempSplit[0].size();
+			if ((s - 5) >= 0)
+				src = tempSplit[0].substr(5, tempSplit[0].size() - 5) + "image";
+			if(src.length()!=0)
+				result.push_back(src);
 			current = tagEnd;
 		}
 		else if(tagname == "a")
 		{ 
-			const char *v = strstr(tag.c_str(), "href");
-			if (v != NULL)
-			{
+			//const char *v = strstr(tag.c_str(), "href");
+			//if (v != NULL)
+			//{
 				string link(strstr(tag.c_str(), "href"));
 				vector<string> tempSplit = htmlsplit(link, ' ');
-				link = tempSplit[0].substr(6, tempSplit[0].size() - 6);
-				link = link.erase(link.length() - 1, 1);
-				string temp(current, htmlEnd);
-				string hyperText = removeTag(temp, tagname, tag.length());// + "hyperText";
-				hyperText = replaceAll(hyperText, "<span>", "");
-				hyperText = replaceAll(hyperText, "</span>", "");
-				pair<string, string> p(hyperText, link);
-				hyperLink.insert(p);
-				result.push_back(hyperText + "hyperText");
+				int s = tempSplit[0].size();
+				if((s - 6) >=0)
+					link = tempSplit[0].substr(6, tempSplit[0].size() - 6);
+				if (link.length() != 0)
+				{
+					link = link.erase(link.length() - 1, 1);
+					string temp(current, htmlEnd);
+					string hyperText = removeTag(temp, tagname, tag.length());// + "hyperText";
+					hyperText = replaceAll(hyperText, "<span>", "");
+					hyperText = replaceAll(hyperText, "</span>", "");
+					pair<string, string> p(hyperText, link);
+					hyperLink.insert(p);
+					result.push_back(hyperText + "hyperText");
+
+				}
 				current = tagEnd;
-			}
-			else
-				current = tagStart + 1;
+			//}
+			//else
+				//current = tagStart + 1;
 		}
 		else
 		{
 			if (tagname != "none")
 			{
+				// tag를 제거한 string에서 <br>, <span> 태그 제거
 				string temp(current, htmlEnd);
 				temp = removeTag(temp, tagname, tag.length()) + tagname;
 				temp = replaceAll(temp, "<br>", "\n");
@@ -112,23 +117,10 @@ void HTMLParser::moreParse(const string &resource)
 			current = tagEnd;
 		}
 	}
-
 	cout << "here" << endl;
 }
 
-PARSESTATE HTMLParser::validtag(string tag)
-{
-	if (tag.substr(0, 5) == "title" || tag.substr(0, 2) == "h1" || tag.substr(0, 2) == "h2" || tag.substr(0, 2) == "h3" || tag.substr(0, 2) == "h4" || tag.substr(0, 2) == "h5" || tag.substr(0, 2) == "h6" || tag.substr(0, 1) == "p" || tag.substr(0, 6) == "center")
-	{
-		return TEXTPARSE;
-	}
-	else if (tag.substr(0, 3) == "img")
-	{
-		return IMAGEPARSE;
-	}
-	return NONPARSE;
-}
-
+// userInput 명령 판단
 string HTMLParser::getTag(string tag)
 {
 	string htag = tag.substr(0, 2);
@@ -160,12 +152,11 @@ string HTMLParser::getTag(string tag)
 		return "none";
 }
 
+// <> </> Tag 제거하기
 string HTMLParser::removeTag(string tag, string tagname, int len)
 {
 	string temp = "";
-	//temp = html.substr((html.find("<" + tag) + tag.length() + 1 ), (html.find("</" + tag + ">")) - (html.find("<" + tag) + tag.length() + 1));
 	temp = tag.substr((tag.find("<" + tagname) + len + 1), (tag.find("</" + tagname + ">")) - (tag.find("<" + tagname) + len + 1));
-	//temp = html.substr(html.find(">"), (html.find("</" + tag + ">")) - (html.find(">")));
 	temp = strstr(temp.c_str(), ">");
 	temp = temp.erase(0, 1);
 	return temp;
