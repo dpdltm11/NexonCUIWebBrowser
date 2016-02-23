@@ -5,6 +5,7 @@
 
 using namespace std;
 
+// URI Parse Class
 class Uri
 {
 private:

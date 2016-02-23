@@ -10,12 +10,7 @@
 
 using namespace std;
 
-enum PARSESTATE {
-	TEXTPARSE,
-	IMAGEPARSE,
-	NONPARSE
-};
-
+// html parsing을 위한 클래스
 class HTMLParser
 {
 private:
@@ -27,11 +22,10 @@ public:
 	HTMLParser(string);
 	string removeTag(string,string, int);
 	void moreParse(const string &);
-	PARSESTATE validtag(string);
 	string getTag(string tag);
 	string getTitle();
 	string geth1();
 	vector<string> getResult();
 	vector<string> getkeyHyperLink();
 	unordered_map< string, string > getHyperLink();
-};  // uri
+};

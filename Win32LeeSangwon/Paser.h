@@ -8,6 +8,8 @@
 
 using namespace std;
 
+// html 결과를 위한 class
+// 200일 경우만 html parses
 class Parser
 {
 private:

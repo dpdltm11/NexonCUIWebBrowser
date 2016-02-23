@@ -39,16 +39,18 @@ vector<int> jpgSize;
 unordered_map< string, string > hyperLinkMap;
 unordered_map< string, char* > imagecache;
 unordered_map< string, int > imagecacheSize;
+
 // url 입력(input)
 static char str[256];
 int scroll;
-InputController userInterface;
+InputController userInterface; 
 
 HWND hwndMain;
 HWND hEdit;
 WNDPROC origLVEditWndProc = NULL;
 RECT rt = { 10,60,400,300 };
 
+// string 한개만 replace 하는 함수
 void replace(vector<string>& my_vector_2, string old, string replacement) {
 	vector<string>::iterator it;
 	for (it = my_vector_2.begin(); it != my_vector_2.end(); ++it) {
@@ -128,14 +130,15 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	{
 		switch (wParam)
 		{
+		//focus가 edit일 때 스크롤
 		case VK_PRIOR:
 			cout << "pgup" << endl;
-			scroll += 10;
+			scroll += 15;
 			InvalidateRect(hwndMain, &rt, FALSE);
 			break;
 		case VK_NEXT:
 			cout << "pgdn" << endl;
-			scroll -= 10;
+			scroll -= 15;
 			InvalidateRect(hwndMain, &rt, FALSE);
 			break;
 
@@ -151,10 +154,9 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 			SendMessage(hWnd, WM_GETTEXT, (WPARAM)textLength, (LPARAM)str);
 			printf("enter!\n");
 			
+			// Input Control
 			string usrInput(str);
-
 			STATE curState = userInterface.getState(usrInput);
-
 			if (curState == HELPSTATE)
 			{
 				ret.push_back(userInterface.getHelpText());
@@ -190,33 +192,17 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 			}
 			else if (curState == LSSTATE)
 			{
-				vector<string> urilist = userInterface.getURIList();
-				
+				vector<string> urilist = userInterface.getURIList();				
 				for (int p = 0; p < urilist.size(); p++)
 				{
 					ret.push_back(urilist[p]);
 				}
-			}
-			else if (curState == HLSSTATE)
-			{
-				for (auto it = hyperLinkMap.begin(); it != hyperLinkMap.end(); ++it)
-					ret.push_back(it->first);// << ":" << it->second;
 			}
 			else if (curState == HGOSTATE)
 			{
 				string getKey = userInterface.getUserHyperLinkText();
 				string hyperURI = "";
 				hyperURI = hyperLinkMap.find(getKey)->second;
-				/*
-				for (auto it = hyperLinkMap.begin(); it != hyperLinkMap.end(); it++) {
-					//cout << " " << it->first << ":" << it->second;
-					if ((it->first) == getKey)
-					{
-						hyperURI = it->second;
-						break;
-					}
-				}
-				*/
 				if (hyperURI != "")
 				{
 					userInterface.pushHyperLinkURI(hyperURI);
@@ -228,17 +214,7 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		}
 		case VK_BACK:
 		{
-			//scroll = 0;
-			printf("backspace!\n");
 			result = "";
-			/*
-			result = "";
-			ret.clear();
-			images.clear();
-			jpgimages.clear();
-			jpgSize.clear();
-			hyperLinkMap.clear();
-			*/
 			InvalidateRect(hwndMain, &rt, FALSE);
 			break;
 		}
@@ -282,6 +258,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	switch (iMessage)
 	{
 	case WM_CREATE:
+		// edit control
 		hEdit = CreateWindow("edit", NULL, WS_CHILD | WS_VISIBLE | WS_BORDER |
 			ES_AUTOHSCROLL, 250, 10, 300, 25, hWnd, (HMENU)NULL, g_hInst, NULL);
 		origLVEditWndProc = (WNDPROC)SetWindowLong(hEdit, GWL_WNDPROC, (DWORD)LVEditWndProc);
@@ -293,15 +270,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		{
 		case VK_PRIOR:
 			cout << "pgup" << endl;
-			scroll += 10;
+			scroll += 15;
 			InvalidateRect(hwndMain, &rt, FALSE);
-			//InvalidateRect(hwndMain, NULL, FALSE);
 			break;
 		case VK_NEXT:
 			cout << "pgdn" << endl;
-			scroll -= 10;
+			scroll -= 15;
 			InvalidateRect(hwndMain, &rt, FALSE);
-			//InvalidateRect(hwndMain, NULL, FALSE);
 			break;
 		}
 	}
@@ -311,6 +286,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		hdc = BeginPaint(hWnd, &ps);
 		FillRect(hdc, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
 		rect.top += scroll;
+		// bmp local image load with double buffering
 		if (LoadBitmapFromBMPFile("nexon.bmp", &hBMP, &hPalette, 0))
 		{
 			GetObject(hBMP, sizeof(BITMAP), &bm);
@@ -318,7 +294,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			hOldBmp = (HBITMAP)SelectObject(hMemDC, hBMP);
 			hOldPalette = SelectPalette(hdc, hPalette, FALSE);
 			RealizePalette(hdc);
-			BitBlt(hdc, 0, 0, bm.bmWidth, bm.bmHeight,
+			BitBlt(hdc, 5, 3, bm.bmWidth, bm.bmHeight,
 				hMemDC, 0, 0, SRCCOPY);
 
 			SelectObject(hMemDC, hOldBmp);
@@ -329,7 +305,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 		for (int i = 0; i < ret.size(); i++)
 		{
-			//if (ret[i] != "bmpimage" && ret[i] != "jpgimage"&& ret[i] != "pngimage"&& ret[i] != "gifimage")
+			// 텍스트 tag일 경우
 			if (ret[i] != "image")
 			{
 				int fontSize = 15;
@@ -415,7 +391,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			}
 			else
 			{
-				cout << ret[i] << endl;
+				// image tag일 경우
 				Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 				ULONG_PTR gdiplusToken;
 				Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
@@ -450,91 +426,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 						DeleteObject(hPalette);
 					}
 					rect.top += pImage->GetHeight();
-					//rect.top += testImage->GetHeight();
 				}
 				jpgimageCount++;
-
-				/*
-				if (ret[i] == "bmpimage")
-				{
-					BITMAPFILEHEADER* pBmfh = (BITMAPFILEHEADER*)images[imageCount];
-					BITMAPINFOHEADER* pBmih = (BITMAPINFOHEADER*)(images[imageCount] + sizeof(BITMAPFILEHEADER));
-					BITMAPINFO* pBmi = (BITMAPINFO*)pBmih;
-					void* pBMPdata = (void*)(images[imageCount] + pBmfh->bfOffBits);
-					void* pToFill = 0;
-					hBitmap = CreateDIBSection(NULL, pBmi, DIB_RGB_COLORS, &pToFill, NULL, NULL);
-
-					memcpy(pToFill, pBMPdata, pBmfh->bfSize - pBmfh->bfOffBits);                                         // this line should be added!
-
-					if (LoadBitmapFromBMPFile("", &hBitmap, &hPalette, 1))
-					{
-						GetObject(hBitmap, sizeof(BITMAP), &bm);
-						hMemDC = CreateCompatibleDC(hdc);
-						hOldBitmap = (HBITMAP)SelectObject(hMemDC, hBitmap);
-						hOldPalette = SelectPalette(hdc, hPalette, FALSE);
-						RealizePalette(hdc);
-
-						BitBlt(hdc, rect.left, rect.top, bm.bmWidth, bm.bmHeight,
-							hMemDC, 0, 0, SRCCOPY);
-						SelectObject(hMemDC, hOldBitmap);
-						DeleteObject(hBitmap);
-						SelectPalette(hdc, hOldPalette, FALSE);
-						DeleteObject(hPalette);
-					}
-					cout << "bmpimage" << endl;
-					imageCount++;
-					rect.top += bm.bmHeight;
-				}
-				else if (ret[i] == "jpgimage" || ret[i] == "pngimage" || ret[i] == "gifimage")
-				{
-					cout << ret[i] << endl;
-					Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-					ULONG_PTR gdiplusToken;
-					Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-					Graphics graphics(hdc);
-
-					DWORD dwImageSize = jpgSize[jpgimageCount];
-					BYTE* pImageBuffer = NULL;
-					pImageBuffer = (BYTE*)(jpgimages[jpgimageCount]);
-					HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, dwImageSize);
-					void* pData = GlobalLock(hGlobal);
-					memcpy(pData, pImageBuffer, dwImageSize);
-					GlobalUnlock(hGlobal);
-					IStream* pStream = NULL;
-					if (CreateStreamOnHGlobal(hGlobal, TRUE, &pStream) == S_OK)
-					{
-						//Image *testImage = Image::FromStream(pStream);
-						//graphics.DrawImage(testImage, rect.left, rect.top);	
-						Bitmap *pImage = Bitmap::FromStream(pStream);
-						pImage->GetHBITMAP(Color::White, &hBitmap);
-						if (LoadBitmapFromBMPFile("", &hBitmap, &hPalette, 1))
-						{
-							GetObject(hBitmap, sizeof(BITMAP), &bm);
-							hMemDC = CreateCompatibleDC(hdc);
-							hOldBitmap = (HBITMAP)SelectObject(hMemDC, hBitmap);
-							hOldPalette = SelectPalette(hdc, hPalette, FALSE);
-							RealizePalette(hdc);
-							BitBlt(hdc, rect.left, rect.top, bm.bmWidth, bm.bmHeight,
-								hMemDC, 0, 0, SRCCOPY);
-							SelectObject(hMemDC, hOldBitmap);
-							DeleteObject(hBitmap);
-							SelectPalette(hdc, hOldPalette, FALSE);
-							DeleteObject(hPalette);
-						}
-						rect.top += pImage->GetHeight();
-						//rect.top += testImage->GetHeight();
-					}
-					jpgimageCount++;
-				}
-				*/
 			}
 		}
-		//RECT rt = { 0,0,400,300 };
-		//DrawText(hdc, "Simple Web Browser", -1, &rect, DT_LEFT | DT_WORDBREAK | DT_NOCLIP);
-		//DrawText(hdc, "주소 입력 후 Enter를 입력하세요!", -1, &rect, DT_LEFT | DT_WORDBREAK | DT_NOCLIP);
-
-		//TextOut(hdc, 110, 10, , strlen("Simple Web Browser"));
-		//TextOut(hdc, 110, 30, , strlen("주소 입력 후 Enter를 입력하세요!"));
 		EndPaint(hWnd, &ps);
 		return 0;
 	}
@@ -558,7 +453,6 @@ void getDataFromServer(string uri)
 	{
 		Parser *htmlParse = new Parser(result);
 		// 성공하지 못했을 때 error코드 출력
-
 		if (htmlParse->getstatusNum() != "200")
 		{
 			ret.push_back("\n페이지 요청 결과 : " + htmlParse->getstatusNum() + "  " + htmlParse->getstatus());
@@ -589,6 +483,7 @@ void getDataFromServer(string uri)
 							tempimage = getrequest->getImage(ret[i].substr(0, ret[i].length() - 6));
 						if (tempimage.size() != 0)
 						{
+							// 200 OK일 경우
 							if (tempimage[9] == '2' && tempimage[10] == '0' && tempimage[11] == '0')
 							{
 								int imageLen = tempimage.size();
