@@ -186,10 +186,13 @@ vector<char> HttpConnector::getImage(string tempuri) {
 		do
 		{
 			resp_leng = recv(sock, (char*)&buffer, BUFFERSIZE, 0);
+			copy(buffer, buffer + resp_leng, back_inserter(image));
+			/*
 			for (int i = 0; i < resp_leng; i++)
 			{				
 				image.push_back(buffer[i]);
 			}
+			*/
 		} while (resp_leng != 0);
 
 		//disconnect

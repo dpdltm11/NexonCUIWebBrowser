@@ -37,6 +37,8 @@ vector<char*> images;
 vector<char*> jpgimages;
 vector<int> jpgSize;
 unordered_map< string, string > hyperLinkMap;
+unordered_map< string, char* > imagecache;
+unordered_map< string, int > imagecacheSize;
 // url 입력(input)
 static char str[256];
 int scroll;
@@ -204,6 +206,8 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 			{
 				string getKey = userInterface.getUserHyperLinkText();
 				string hyperURI = "";
+				hyperURI = hyperLinkMap.find(getKey)->second;
+				/*
 				for (auto it = hyperLinkMap.begin(); it != hyperLinkMap.end(); it++) {
 					//cout << " " << it->first << ":" << it->second;
 					if ((it->first) == getKey)
@@ -212,6 +216,7 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 						break;
 					}
 				}
+				*/
 				if (hyperURI != "")
 				{
 					userInterface.pushHyperLinkURI(hyperURI);
@@ -324,7 +329,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 		for (int i = 0; i < ret.size(); i++)
 		{
-			if (ret[i] != "bmpimage" && ret[i] != "jpgimage"&& ret[i] != "pngimage"&& ret[i] != "gifimage")
+			//if (ret[i] != "bmpimage" && ret[i] != "jpgimage"&& ret[i] != "pngimage"&& ret[i] != "gifimage")
+			if (ret[i] != "image")
 			{
 				int fontSize = 15;
 				if (ret[i].substr(ret[i].length() - 5, 5) == "title")
@@ -409,6 +415,46 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			}
 			else
 			{
+				cout << ret[i] << endl;
+				Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+				ULONG_PTR gdiplusToken;
+				Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+				Graphics graphics(hdc);
+
+				DWORD dwImageSize = jpgSize[jpgimageCount];
+				BYTE* pImageBuffer = NULL;
+				pImageBuffer = (BYTE*)(jpgimages[jpgimageCount]);
+				HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, dwImageSize);
+				void* pData = GlobalLock(hGlobal);
+				memcpy(pData, pImageBuffer, dwImageSize);
+				GlobalUnlock(hGlobal);
+				IStream* pStream = NULL;
+				if (CreateStreamOnHGlobal(hGlobal, TRUE, &pStream) == S_OK)
+				{
+					//Image *testImage = Image::FromStream(pStream);
+					//graphics.DrawImage(testImage, rect.left, rect.top);	
+					Bitmap *pImage = Bitmap::FromStream(pStream);
+					pImage->GetHBITMAP(Color::White, &hBitmap);
+					if (LoadBitmapFromBMPFile("", &hBitmap, &hPalette, 1))
+					{
+						GetObject(hBitmap, sizeof(BITMAP), &bm);
+						hMemDC = CreateCompatibleDC(hdc);
+						hOldBitmap = (HBITMAP)SelectObject(hMemDC, hBitmap);
+						hOldPalette = SelectPalette(hdc, hPalette, FALSE);
+						RealizePalette(hdc);
+						BitBlt(hdc, rect.left, rect.top, bm.bmWidth, bm.bmHeight,
+							hMemDC, 0, 0, SRCCOPY);
+						SelectObject(hMemDC, hOldBitmap);
+						DeleteObject(hBitmap);
+						SelectPalette(hdc, hOldPalette, FALSE);
+						DeleteObject(hPalette);
+					}
+					rect.top += pImage->GetHeight();
+					//rect.top += testImage->GetHeight();
+				}
+				jpgimageCount++;
+
+				/*
 				if (ret[i] == "bmpimage")
 				{
 					BITMAPFILEHEADER* pBmfh = (BITMAPFILEHEADER*)images[imageCount];
@@ -480,6 +526,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					}
 					jpgimageCount++;
 				}
+				*/
 			}
 		}
 		//RECT rt = { 0,0,400,300 };
@@ -528,16 +575,21 @@ void getDataFromServer(string uri)
 				if (ret[i].substr(ret[i].length() - 5, 5) == "image")
 				{
 					vector<char> tempimage;
-					if (jpgimages.size() < 10)// && (ret[i].substr(ret[i].length() - 9, 3) == "bmp" || (ret[i].substr(ret[i].length() - 9, 3) == "jpg" || ret[i].substr(ret[i].length() - 9, 3) == "png" || ret[i].substr(ret[i].length() - 9, 3) == "gif")))
-						tempimage = getrequest->getImage(ret[i].substr(0, ret[i].length() - 6));
-					else
-						continue;
-
-					if (tempimage.size() != 0)
+					unordered_map<string, char*>::iterator FindIter = imagecache.find(ret[i].substr(0, ret[i].length() - 6));
+					// 찾았다면
+					if(FindIter != imagecache.end())
 					{
-						if (tempimage[9] == '2' && tempimage[10] == '0' && tempimage[11] == '0')
+						jpgimages.push_back(FindIter->second);
+						jpgSize.push_back(imagecacheSize.find(ret[i].substr(0, ret[i].length() - 6))->second);
+						replace(ret, ret[i], "image");
+					}
+					else
+					{
+						if(jpgimages.size() < 6)
+							tempimage = getrequest->getImage(ret[i].substr(0, ret[i].length() - 6));
+						if (tempimage.size() != 0)
 						{
-							if (ret[i].substr(ret[i].length() - 9, 3) == "bmp")
+							if (tempimage[9] == '2' && tempimage[10] == '0' && tempimage[11] == '0')
 							{
 								int imageLen = tempimage.size();
 								char *binary = new char[imageLen];
@@ -549,71 +601,26 @@ void getDataFromServer(string uri)
 									j++;
 								}
 								char *temp = strstr(binary, "\n\n");
-								cout << "bmp" << endl;
-								images.push_back(&temp[2]);
-								replace(ret, ret[i], "bmpimage");
-							}
-							//else if ((ret[i].substr(ret[i].length() - 9, 3) == "jpg" || ret[i].substr(ret[i].length() - 9, 3) == "png"|| ret[i].substr(ret[i].length() - 9, 3) == "gif"))
-							else if ((ret[i].find(".jpg") || ret[i].find(".png") || ret[i].find(".gif")) != string::npos)
-							{
-								int imageLen = tempimage.size();
-								char *binary = new char[imageLen];
-								memset(binary, 0, imageLen);
-								int j = 0;
-								for (int k = 0; k < tempimage.size(); k++)
+								if (temp == NULL)
 								{
-									binary[j] = tempimage[k];
-									j++;
+									temp = strstr(binary, "\r\n\r\n");
+									jpgimages.push_back(&temp[4]);
 								}
-								if (ret[i].find(".png") != string::npos)
+								else
 								{
-									char *temp = strstr(binary, "PNG");
-									temp = temp - 1;
-									jpgimages.push_back(&temp[0]);
-									replace(ret, ret[i], "pngimage");
+									jpgimages.push_back(&temp[2]);
 								}
-								else if (ret[i].find(".gif") != string::npos)
-								{
-									char *temp = strstr(binary, "GIF");
-									jpgimages.push_back(&temp[0]);
-									replace(ret, ret[i], "gifimage");
-								}
-								else if (ret[i].find(".jpg") != string::npos)
-								{
-									char *temp;
-									for (int k = 0; k < imageLen - 4; k++)
-									{
-										//4a 46 49 46 00 -> JFIF
-										if (binary[k] == 0x4a && binary[k + 1] == 0x46 && binary[k + 2] == 0x49 && binary[k + 3] == 0x46)
-										{
-											temp = &binary[k];
-											break;
-										}
-										//45 78 69 66 00 -> EXIF
-										else if (binary[k] == 0x45 && binary[k + 1] == 0x78 && binary[k + 2] == 0x69 && binary[k + 3] == 0x66)
-										{
-											temp = &binary[k];
-											break;
-										}
-									}
-									//char *temp2 = strstr(binary, "JFIF");
-									if (temp != NULL)
-									{
-										//char *temp3 = strstr(binary, "\n\n");
-										temp = temp - 6;
-										jpgimages.push_back(&temp[0]);
-										//jpgimages.push_back(&temp3[2]);
-										replace(ret, ret[i], "jpgimage");
-									}
-								}
-								cout << "otherimg" << endl;
+								imagecache.insert(pair<string, char*>(ret[i].substr(0, ret[i].length() - 6), &temp[4]));
+								imagecacheSize.insert(pair<string, int>(ret[i].substr(0, ret[i].length() - 6), imageLen));
+								cout << "image" << endl;
+								replace(ret, ret[i], "image");
 								jpgSize.push_back(imageLen);
 							}
+							else
+							{
+								ret.push_back("image failed");
+							}
 						}
-					}
-					else
-					{
-						ret.push_back("image failed");
 					}
 				}
 			}

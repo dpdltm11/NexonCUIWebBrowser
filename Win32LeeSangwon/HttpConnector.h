@@ -2,6 +2,8 @@
 #include <Windows.h>
 #include <vector>
 #include"Uri.h"
+#include <iterator>     // std::back_insert_iterator
+
 //#define BUFFERSIZE 1024
 #define BUFFERSIZE 100000
 class HttpConnector

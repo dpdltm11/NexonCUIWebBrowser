@@ -1,23 +1,12 @@
-﻿  HTMLParser.cpp
-  HttpConnector.cpp
-  InputController.cpp
-InputController.cpp(49): warning C4018: '<=': signed 또는 unsigned가 일치하지 않습니다.
-  Parser.cpp
-Parser.cpp(29): warning C4305: '인수': 'int'에서 'char'(으)로 잘립니다.
-Parser.cpp(29): warning C4309: '인수': 상수 값이 잘립니다.
-Parser.cpp(66): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-Parser.cpp(72): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-  Uri.cpp
-  main.cpp
-main.cpp(193): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-main.cpp(325): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-main.cpp(263): warning C4101: 'hdcBuffer' :참조되지 않은 지역 변수입니다.
-main.cpp(526): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-main.cpp(546): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-main.cpp(563): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+﻿  main.cpp
+main.cpp(195): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+main.cpp(330): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+main.cpp(268): warning C4101: 'hdcBuffer' :참조되지 않은 지역 변수입니다.
+main.cpp(573): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+main.cpp(598): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
   코드를 생성하고 있습니다.
-  129 of 1079 functions (12.0%) were compiled, the rest were copied from previous compilation.
+  2 of 1594 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    49 functions had inline decision re-evaluated but remain unchanged
+    5 functions had inline decision re-evaluated but remain unchanged
   코드를 생성했습니다.
   Win32LeeSangwon.vcxproj -> C:\Users\leesangwon0114\Downloads\Win32LeeSangwon\Win32LeeSangwon\Release\Win32LeeSangwon.exe
