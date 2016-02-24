@@ -34,8 +34,7 @@ LPCTSTR lpszClass = TEXT("CUIWebBrowser");
 string result;
 vector<string> ret;
 vector<char*> images;
-vector<char*> jpgimages;
-vector<int> jpgSize;
+vector<int> imageSize;
 unordered_map< string, string > hyperLinkMap;
 unordered_map< string, char* > imagecache;
 unordered_map< string, int > imagecacheSize;
@@ -147,8 +146,7 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 			scroll = 0;
 			ret.clear();
 			images.clear();
-			jpgimages.clear();
-			jpgSize.clear();
+			imageSize.clear();
 			// get current text
 			int textLength = (int)SendMessage(hWnd, WM_GETTEXTLENGTH, 0, 0) + 1;
 			SendMessage(hWnd, WM_GETTEXT, (WPARAM)textLength, (LPARAM)str);
@@ -231,8 +229,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	int len = 0;
 	int imageCount = 0;
-	int jpgimageCount = 0;
-	int h = 0;
 
 	hwndMain = hWnd;
 	HBITMAP hBMP, hOldBmp;
@@ -249,7 +245,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	if (GetWindowRect(hWnd, &rect))
 	{
 		rect.left = 10;
-		rect.top = 40;
+		rect.top = 45;
 		width = rect.right - rect.left;
 		height = rect.bottom - rect.top;
 	}
@@ -294,7 +290,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			hOldBmp = (HBITMAP)SelectObject(hMemDC, hBMP);
 			hOldPalette = SelectPalette(hdc, hPalette, FALSE);
 			RealizePalette(hdc);
-			BitBlt(hdc, 5, 3, bm.bmWidth, bm.bmHeight,
+			BitBlt(hdc, 0, 0, bm.bmWidth, bm.bmHeight,
 				hMemDC, 0, 0, SRCCOPY);
 
 			SelectObject(hMemDC, hOldBmp);
@@ -397,9 +393,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 				Graphics graphics(hdc);
 
-				DWORD dwImageSize = jpgSize[jpgimageCount];
+				DWORD dwImageSize = imageSize[imageCount];
 				BYTE* pImageBuffer = NULL;
-				pImageBuffer = (BYTE*)(jpgimages[jpgimageCount]);
+				pImageBuffer = (BYTE*)(images[imageCount]);
 				HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, dwImageSize);
 				void* pData = GlobalLock(hGlobal);
 				memcpy(pData, pImageBuffer, dwImageSize);
@@ -427,7 +423,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					}
 					rect.top += pImage->GetHeight();
 				}
-				jpgimageCount++;
+				imageCount++;
 			}
 		}
 		EndPaint(hWnd, &ps);
@@ -473,13 +469,13 @@ void getDataFromServer(string uri)
 					// 찾았다면
 					if(FindIter != imagecache.end())
 					{
-						jpgimages.push_back(FindIter->second);
-						jpgSize.push_back(imagecacheSize.find(ret[i].substr(0, ret[i].length() - 6))->second);
+						images.push_back(FindIter->second);
+						imageSize.push_back(imagecacheSize.find(ret[i].substr(0, ret[i].length() - 6))->second);
 						replace(ret, ret[i], "image");
 					}
 					else
 					{
-						if(jpgimages.size() < 6)
+						if(images.size() < 6)
 							tempimage = getrequest->getImage(ret[i].substr(0, ret[i].length() - 6));
 						if (tempimage.size() != 0)
 						{
@@ -499,17 +495,17 @@ void getDataFromServer(string uri)
 								if (temp == NULL)
 								{
 									temp = strstr(binary, "\r\n\r\n");
-									jpgimages.push_back(&temp[4]);
+									images.push_back(&temp[4]);
 								}
 								else
 								{
-									jpgimages.push_back(&temp[2]);
+									images.push_back(&temp[2]);
 								}
 								imagecache.insert(pair<string, char*>(ret[i].substr(0, ret[i].length() - 6), &temp[4]));
 								imagecacheSize.insert(pair<string, int>(ret[i].substr(0, ret[i].length() - 6), imageLen));
 								cout << "image" << endl;
 								replace(ret, ret[i], "image");
-								jpgSize.push_back(imageLen);
+								imageSize.push_back(imageLen);
 							}
 							else
 							{
