@@ -1,1 +1,8 @@
-﻿  Win32LeeSangwon.vcxproj -> C:\Users\leesangwon0114\Downloads\Win32LeeSangwon\Win32LeeSangwon\Debug\Win32LeeSangwon.exe
+﻿  main.cpp
+c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(202): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(308): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(246): warning C4101: 'hdcBuffer' :참조되지 않은 지역 변수입니다.
+c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(576): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(504): warning C4101: 'ipaddress' :참조되지 않은 지역 변수입니다.
+c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(632): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+  Win32LeeSangwon.vcxproj -> C:\Users\leesangwon0114\Downloads\Win32LeeSangwon\Win32LeeSangwon\Debug\Win32LeeSangwon.exe

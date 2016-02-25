@@ -8,12 +8,13 @@
 #include <assert.h>
 #include <atlimage.h>
 #include <gdiplus.h>
-#include <ole2.h> // 아래2줄은 IStream쓰려면필요함
+#include <ole2.h>
 #include <Shlwapi.h>
 #include <iterator>
 #include <stdio.h>
 #include <fstream>
-
+#include <thread>
+#include <future>
 using namespace Gdiplus;
 
 #pragma comment (lib, "gdiplus")
@@ -33,11 +34,12 @@ LPCTSTR lpszClass = TEXT("CUIWebBrowser");
 // http response
 string result;
 vector<string> ret;
-vector<char*> images;
-vector<int> imageSize;
+unordered_map< int, char* > images;
+unordered_map< int, int > imageSize;
 unordered_map< string, string > hyperLinkMap;
 unordered_map< string, char* > imagecache;
 unordered_map< string, int > imagecacheSize;
+vector<thread> threads;
 
 // url 입력(input)
 static char str[256];
@@ -147,6 +149,7 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 			ret.clear();
 			images.clear();
 			imageSize.clear();
+			threads.clear();
 			// get current text
 			int textLength = (int)SendMessage(hWnd, WM_GETTEXTLENGTH, 0, 0) + 1;
 			SendMessage(hWnd, WM_GETTEXT, (WPARAM)textLength, (LPARAM)str);
@@ -212,8 +215,6 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		}
 		case VK_BACK:
 		{
-			result = "";
-			InvalidateRect(hwndMain, &rt, FALSE);
 			break;
 		}
 		}
@@ -304,6 +305,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			// 텍스트 tag일 경우
 			if (ret[i] != "image")
 			{
+				if (ret[i].substr(ret[i].length() - 5, 5) == "image")
+				{
+					imageCount++;
+				}
 				int fontSize = 15;
 				if (ret[i].substr(ret[i].length() - 5, 5) == "title")
 				{
@@ -393,36 +398,49 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 				Graphics graphics(hdc);
 
-				DWORD dwImageSize = imageSize[imageCount];
-				BYTE* pImageBuffer = NULL;
-				pImageBuffer = (BYTE*)(images[imageCount]);
-				HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, dwImageSize);
-				void* pData = GlobalLock(hGlobal);
-				memcpy(pData, pImageBuffer, dwImageSize);
-				GlobalUnlock(hGlobal);
-				IStream* pStream = NULL;
-				if (CreateStreamOnHGlobal(hGlobal, TRUE, &pStream) == S_OK)
+				unordered_map<int, int>::iterator FindImageSize = imageSize.find(imageCount);
+				// 찾았다면
+				if (FindImageSize != imageSize.end())
 				{
-					//Image *testImage = Image::FromStream(pStream);
-					//graphics.DrawImage(testImage, rect.left, rect.top);	
-					Bitmap *pImage = Bitmap::FromStream(pStream);
-					pImage->GetHBITMAP(Color::White, &hBitmap);
-					if (LoadBitmapFromBMPFile("", &hBitmap, &hPalette, 1))
+					DWORD dwImageSize = FindImageSize->second;
+					BYTE* pImageBuffer = NULL;
+					unordered_map<int, char*>::iterator FindImage = images.find(imageCount);
+					// 찾았다면
+					if (FindImage != images.end())
 					{
-						GetObject(hBitmap, sizeof(BITMAP), &bm);
-						hMemDC = CreateCompatibleDC(hdc);
-						hOldBitmap = (HBITMAP)SelectObject(hMemDC, hBitmap);
-						hOldPalette = SelectPalette(hdc, hPalette, FALSE);
-						RealizePalette(hdc);
-						BitBlt(hdc, rect.left, rect.top, bm.bmWidth, bm.bmHeight,
-							hMemDC, 0, 0, SRCCOPY);
-						SelectObject(hMemDC, hOldBitmap);
-						DeleteObject(hBitmap);
-						SelectPalette(hdc, hOldPalette, FALSE);
-						DeleteObject(hPalette);
+						pImageBuffer = (BYTE*)(FindImage->second);
+						HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, dwImageSize);
+						void* pData = GlobalLock(hGlobal);
+						memcpy(pData, pImageBuffer, dwImageSize);
+						GlobalUnlock(hGlobal);
+						IStream* pStream = NULL;
+						if (CreateStreamOnHGlobal(hGlobal, TRUE, &pStream) == S_OK)
+						{
+							//Image *testImage = Image::FromStream(pStream);
+							//graphics.DrawImage(testImage, rect.left, rect.top);	
+							Bitmap *pImage = Bitmap::FromStream(pStream);
+							pImage->GetHBITMAP(Color::White, &hBitmap);
+							if (LoadBitmapFromBMPFile("", &hBitmap, &hPalette, 1))
+							{
+								GetObject(hBitmap, sizeof(BITMAP), &bm);
+								hMemDC = CreateCompatibleDC(hdc);
+								hOldBitmap = (HBITMAP)SelectObject(hMemDC, hBitmap);
+								hOldPalette = SelectPalette(hdc, hPalette, FALSE);
+								RealizePalette(hdc);
+								BitBlt(hdc, rect.left, rect.top, bm.bmWidth, bm.bmHeight,
+									hMemDC, 0, 0, SRCCOPY);
+								SelectObject(hMemDC, hOldBitmap);
+								DeleteObject(hBitmap);
+								SelectPalette(hdc, hOldPalette, FALSE);
+								DeleteObject(hPalette);
+							}
+							rect.top += pImage->GetHeight();
+						}
+						replace(ret, ret[i], "image");
 					}
-					rect.top += pImage->GetHeight();
+					
 				}
+				
 				imageCount++;
 			}
 		}
@@ -439,8 +457,148 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
 
+void die_with_error(char *errorMessage)
+{
+	cout << errorMessage << endl;
+	//exit(1);
+}
+
+void die_with_wserror(char *errorMessage)
+{
+	cout << errorMessage << ": " << WSAGetLastError() << endl;
+	//exit(1);
+}
+
+// DNS를 통한 ip주소 받아오기
+char* HostToIp(const string& host) {
+	hostent* hostname = gethostbyname(host.c_str());
+	// Init WinSock
+	WSADATA wsa_Data;
+	int wsa_ReturnCode = WSAStartup(0x101, &wsa_Data);
+	// Get the local hostname
+	struct hostent *host_entry;
+	host_entry = gethostbyname(host.c_str());
+	char * szLocalIP;
+	szLocalIP = inet_ntoa(*(struct in_addr *)*host_entry->h_addr_list);
+
+	WSACleanup();
+
+	return szLocalIP;
+}
+
+// 멀티스레드를 위한 imageRequset
+void imageRequset(string tempuri, int index)
+{
+	int resp_leng;
+	string request, response;
+	char buffer[BUFFERSIZE];
+	struct sockaddr_in serveraddr;
+	int sock = 0;
+	WSADATA wsaData;
+	char *ipaddress;
+	vector<char> image;
+
+	Uri *uri = new Uri;//::Parse(tempuri);
+	Uri resultURL = uri->Parse(tempuri);
+	resultURL.Parse(tempuri);
+	//tempuri = tempuri.erase(tempuri.length() - 1, 1);
+	if (resultURL.getProtocol() == "http" || resultURL.getProtocol() == "")
+	{
+		char *ipaddress = HostToIp(resultURL.getHost());
+		int port = 0;
+		if (resultURL.getPort() == "")
+		{
+			port = 80;
+		}
+		else
+		{
+			port = atoi(resultURL.getPort().c_str());
+		}
+		string path = resultURL.getPath();
+
+		if (resultURL.getHost() == "sang12456.cafe24.com")
+			request = "GET " + path + " HTTP/1.1\r\n\r\n";
+		else
+			request = "GET " + path + " HTTP/1.1\nHost: " + resultURL.getHost() + "\r\n\r\n";//"\nConnection : keep - alive\nCache - Control : max - age = 0\nAccept : text / html, application / xhtml + xml, application / xml; q = 0.9, image / webp, */*;q=0.8\nUpgrade-Insecure-Requests: 1\nUser-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36\nAccept-Encoding: gzip, deflate, sdch\nAccept-Language: ko-KR,ko;q=0.8,en-US;q=0.6,en;q=0.4\r\n\r\n";
+
+																							 //init winsock
+		if (WSAStartup(MAKEWORD(2, 0), &wsaData) != 0)
+			die_with_wserror("WSAStartup() failed");
+
+		//open socket
+		if ((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+			die_with_wserror("socket() failed");
+
+		//connect
+		memset(&serveraddr, 0, sizeof(serveraddr));
+		serveraddr.sin_family = AF_INET;
+		serveraddr.sin_addr.s_addr = inet_addr(ipaddress);
+		serveraddr.sin_port = htons(port);
+		if (connect(sock, (struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0)
+			die_with_wserror("connect() failed");
+
+		//send request
+		if (send(sock, request.c_str(), request.length(), 0) != request.length())
+			die_with_wserror("send() sent a different number of bytes than expected");
+
+		//get response
+		cout << "response" << endl;
+		response = "";
+		resp_leng = BUFFERSIZE;
+
+		do
+		{
+			resp_leng = recv(sock, (char*)&buffer, BUFFERSIZE, 0);
+			copy(buffer, buffer + resp_leng, back_inserter(image));
+		} while (resp_leng != 0);
+
+		//disconnect
+		closesocket(sock);
+
+		//cleanup
+		WSACleanup();
+	}
+	else
+		response = "not valid";
+
+	if (image[9] == '2' && image[10] == '0' && image[11] == '0')
+	{
+		int imageLen = image.size();
+		char *binary = new char[imageLen];
+		memset(binary, 0, imageLen);
+		int j = 0;
+		for (int k = 0; k < image.size(); k++)
+		{
+			binary[j] = image[k];
+			j++;
+		}
+		char *temp = strstr(binary, "\n\n");
+		if (temp == NULL)
+		{
+			temp = strstr(binary, "\r\n\r\n");
+			images.insert(pair<int, char*>(index, &temp[4]));
+			imagecache.insert(pair<string, char*>(tempuri, &temp[4]));
+		}
+		else
+		{
+			images.insert(pair<int, char*>(index, &temp[2]));
+			imagecache.insert(pair<string, char*>(tempuri, &temp[2]));
+		}
+		imagecache.insert(pair<string, char*>(tempuri, &temp[4]));
+		imagecacheSize.insert(pair<string, int>(tempuri, imageLen));
+		replace(ret, tempuri+"\"image", "image");
+		imageSize.insert(pair<int, int>(index, imageLen));
+	}
+	else
+	{
+		ret.push_back("image failed");
+	}
+	InvalidateRect(hwndMain, &rt, FALSE);
+}
+
 void getDataFromServer(string uri)
 {
+	int count=0;
 	// http get request
 	HttpConnector *getrequest = new HttpConnector;
 	//result = getrequest->httpConnect(usrInput);
@@ -469,48 +627,17 @@ void getDataFromServer(string uri)
 					// 찾았다면
 					if(FindIter != imagecache.end())
 					{
-						images.push_back(FindIter->second);
-						imageSize.push_back(imagecacheSize.find(ret[i].substr(0, ret[i].length() - 6))->second);
+						images.insert(pair<int, char*>(count, FindIter->second));
+						imageSize.insert(pair<int, int>(count, imagecacheSize.find(ret[i].substr(0, ret[i].length() - 6))->second));
 						replace(ret, ret[i], "image");
+						count++;
 					}
 					else
 					{
-						if(images.size() < 6)
-							tempimage = getrequest->getImage(ret[i].substr(0, ret[i].length() - 6));
-						if (tempimage.size() != 0)
+						if (count < 6)
 						{
-							// 200 OK일 경우
-							if (tempimage[9] == '2' && tempimage[10] == '0' && tempimage[11] == '0')
-							{
-								int imageLen = tempimage.size();
-								char *binary = new char[imageLen];
-								memset(binary, 0, imageLen);
-								int j = 0;
-								for (int k = 0; k < tempimage.size(); k++)
-								{
-									binary[j] = tempimage[k];
-									j++;
-								}
-								char *temp = strstr(binary, "\n\n");
-								if (temp == NULL)
-								{
-									temp = strstr(binary, "\r\n\r\n");
-									images.push_back(&temp[4]);
-								}
-								else
-								{
-									images.push_back(&temp[2]);
-								}
-								imagecache.insert(pair<string, char*>(ret[i].substr(0, ret[i].length() - 6), &temp[4]));
-								imagecacheSize.insert(pair<string, int>(ret[i].substr(0, ret[i].length() - 6), imageLen));
-								cout << "image" << endl;
-								replace(ret, ret[i], "image");
-								imageSize.push_back(imageLen);
-							}
-							else
-							{
-								ret.push_back("image failed");
-							}
+							threads.push_back(thread(imageRequset, ret[i].substr(0, ret[i].length() - 6), count));
+							count++;
 						}
 					}
 				}
@@ -521,6 +648,7 @@ void getDataFromServer(string uri)
 	{
 		ret.push_back("not valid");
 	}
+	for (auto& th : threads) th.detach();
 }
 
 BOOL LoadBitmapFromBMPFile(LPTSTR szFileName, HBITMAP *phBitmap, HPALETTE *phPalette, int flag)

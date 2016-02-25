@@ -124,7 +124,7 @@ string HttpConnector::httpConnect(string tempuri) {
 		string strMulti(len, 0);
 		WideCharToMultiByte(CP_ACP, 0, strUnicode, -1, &strMulti[0], len, NULL, NULL);
 		response = strMulti;
-		cout << response << endl;
+		//cout << response << endl;
 	}
 	else
 		response = "not valid";
