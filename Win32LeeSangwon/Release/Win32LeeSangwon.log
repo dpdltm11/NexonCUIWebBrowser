@@ -1,7 +1,22 @@
 ﻿  HttpConnector.cpp
+  InputController.cpp
+InputController.cpp(44): warning C4018: '<=': signed 또는 unsigned가 일치하지 않습니다.
+  Parser.cpp
+Parser.cpp(29): warning C4305: '인수': 'int'에서 'char'(으)로 잘립니다.
+Parser.cpp(29): warning C4309: '인수': 상수 값이 잘립니다.
+Parser.cpp(66): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+Parser.cpp(72): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+  Uri.cpp
+  main.cpp
+main.cpp(155): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+main.cpp(267): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+main.cpp(202): warning C4101: 'hdcBuffer' :참조되지 않은 지역 변수입니다.
+main.cpp(527): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+main.cpp(456): warning C4101: 'ipaddress' :참조되지 않은 지역 변수입니다.
+main.cpp(581): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
   코드를 생성하고 있습니다.
-  4 of 2099 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    9 functions had inline decision re-evaluated but remain unchanged
+  172 of 2155 functions ( 8.0%) were compiled, the rest were copied from previous compilation.
+    59 functions were new in current compilation
+    76 functions had inline decision re-evaluated but remain unchanged
   코드를 생성했습니다.
   Win32LeeSangwon.vcxproj -> C:\Users\leesangwon0114\Downloads\Win32LeeSangwon\Win32LeeSangwon\Release\Win32LeeSangwon.exe

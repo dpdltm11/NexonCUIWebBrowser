@@ -557,12 +557,14 @@ void getDataFromServer(string uri)
 {
 	int count=0;
 	// http get request
-	HttpConnector *getrequest = new HttpConnector;
+	shared_ptr<HttpConnector> getrequest(new HttpConnector);
+	//HttpConnector *getrequest = new HttpConnector;
 	//result = getrequest->httpConnect(usrInput);
 	result = getrequest->httpConnect(uri);
 	if (result != "not valid")
 	{
-		Parser *htmlParse = new Parser(result);
+		shared_ptr<Parser> htmlParse(new Parser(result));
+		//Parser *htmlParse = new Parser(result);
 		// 성공하지 못했을 때 error코드 출력
 		if (htmlParse->getstatusNum() != "200")
 		{
@@ -572,7 +574,8 @@ void getDataFromServer(string uri)
 		{
 			// html
 			result = htmlParse->getHtml();
-			HTMLParser *htmlInfo = new HTMLParser(result);
+			shared_ptr<HTMLParser> htmlInfo(new HTMLParser(result));
+			//HTMLParser *htmlInfo = new HTMLParser(result);
 			ret = htmlInfo->getResult();
 			hyperLinkMap = htmlInfo->getHyperLink();
 			for (int i = 0; i < ret.size(); i++)
