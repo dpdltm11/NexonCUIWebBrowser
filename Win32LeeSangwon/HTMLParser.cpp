@@ -29,16 +29,8 @@ vector<string> htmlsplit(const string &s, char delim) {
 	return elems;
 }
 
-HTMLParser::HTMLParser(string text)
+HTMLParser::HTMLParser(string text) : html(text)
 {
-	//test1
-	//text = "<html><head><title>response</title></head><body><h1>Hello Web Server!</h1></body></html>";
-	//test2
-	//string url = "\"http://www.codeproject.com/KB/GDI-plus/ImageProcessing2/img.jpg\"" ;
-	//string url = " \"http://htmlfive.co.kr/html5/xe/layouts/sketchbook5/img/chrome.png \" ";
-	//text = "<html><head><title>HTML5 오픈 커뮤니티</title></head><body><h1>HTML5 오픈 커뮤니티</h1><p>이 자료는 HTML5 오픈 커뮤니티 에서 배포합니다.</p> <img src =" + url + "></body></html>";
-
-	html = text;
 	moreParse(text);
 }
 
@@ -76,30 +68,23 @@ void HTMLParser::moreParse(const string &resource)
 		}
 		else if(tagname == "a")
 		{ 
-			//const char *v = strstr(tag.c_str(), "href");
-			//if (v != NULL)
-			//{
-				string link(strstr(tag.c_str(), "href"));
-				vector<string> tempSplit = htmlsplit(link, ' ');
-				int s = tempSplit[0].size();
-				if((s - 6) >=0)
-					link = tempSplit[0].substr(6, tempSplit[0].size() - 6);
-				if (link.length() != 0)
-				{
-					link = link.erase(link.length() - 1, 1);
-					string temp(current, htmlEnd);
-					string hyperText = removeTag(temp, tagname, tag.length());// + "hyperText";
-					hyperText = replaceAll(hyperText, "<span>", "");
-					hyperText = replaceAll(hyperText, "</span>", "");
-					pair<string, string> p(hyperText, link);
-					hyperLink.insert(p);
-					result.push_back(hyperText + "hyperText");
-
-				}
-				current = tagEnd;
-			//}
-			//else
-				//current = tagStart + 1;
+			string link(strstr(tag.c_str(), "href"));
+			vector<string> tempSplit = htmlsplit(link, ' ');
+			int s = tempSplit[0].size();
+			if((s - 6) >=0)
+				link = tempSplit[0].substr(6, tempSplit[0].size() - 6);
+			if (link.length() != 0)
+			{
+				link = link.erase(link.length() - 1, 1);
+				string temp(current, htmlEnd);
+				string hyperText = removeTag(temp, tagname, tag.length());// + "hyperText";
+				hyperText = replaceAll(hyperText, "<span>", "");
+				hyperText = replaceAll(hyperText, "</span>", "");
+				pair<string, string> p(hyperText, link);
+				hyperLink.insert(p);
+				result.push_back(hyperText + "hyperText");
+			}
+			current = tagEnd;
 		}
 		else
 		{
@@ -117,10 +102,8 @@ void HTMLParser::moreParse(const string &resource)
 			current = tagEnd;
 		}
 	}
-	cout << "here" << endl;
 }
 
-// userInput 명령 판단
 string HTMLParser::getTag(string tag)
 {
 	string htag = tag.substr(0, 2);

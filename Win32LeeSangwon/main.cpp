@@ -15,6 +15,7 @@
 #include <fstream>
 #include <thread>
 #include <future>
+#include <mutex> 
 using namespace Gdiplus;
 
 #pragma comment (lib, "gdiplus")
@@ -40,6 +41,7 @@ unordered_map< string, string > hyperLinkMap;
 unordered_map< string, char* > imagecache;
 unordered_map< string, int > imagecacheSize;
 vector<thread> threads;
+std::mutex mtx;
 
 // url 입력(input)
 static char str[256];
@@ -48,8 +50,11 @@ InputController userInterface;
 
 HWND hwndMain;
 HWND hEdit;
+HWND hWndVScrollBar;
+HWND hWndHScrollBar;
 WNDPROC origLVEditWndProc = NULL;
 RECT rt = { 10,60,400,300 };
+int maxHeight;
 
 // string 한개만 replace 하는 함수
 void replace(vector<string>& my_vector_2, string old, string replacement) {
@@ -64,40 +69,12 @@ void replace(vector<string>& my_vector_2, string old, string replacement) {
 	}
 }
 
-HWND CreateAHorizontalScrollBar(HWND hwndParent, int sbHeight)
-{
-	RECT rect;
-
-	// Get the dimensions of the parent window's client area;
-	if (!GetClientRect(hwndParent, &rect))
-		return NULL;
-
-	// Create the scroll bar.
-	return (CreateWindowEx(
-		0,                      // no extended styles 
-		"SCROLLBAR",           // scroll bar control class 
-		(PTSTR)NULL,           // no window text 
-		WS_CHILD | WS_VISIBLE   // window styles  
-		| SBS_VERT,         // horizontal scroll bar style 
-		rect.right - 30,              // horizontal position 
-		150 - sbHeight, // vertical position 
-		20,             // width of the scroll bar 
-		rect.bottom - 50,               // height of the scroll bar
-		hwndParent,             // handle to main window 
-		(HMENU)NULL,           // no menu 
-		g_hInst,                // instance owning this window 
-		(PVOID)NULL            // pointer not needed 
-		));
-}
-
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow)
 {
 	HWND hWnd;
 	MSG Message;
 	WNDCLASS WndClass;
 	g_hInst = hInstance;
-
-	printf("hello\n");
 
 	WndClass.cbClsExtra = 0;
 	WndClass.cbWndExtra = 0;
@@ -133,20 +110,19 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		{
 		//focus가 edit일 때 스크롤
 		case VK_PRIOR:
-			cout << "pgup" << endl;
-			scroll += 15;
-			InvalidateRect(hwndMain, &rt, FALSE);
+			scroll += 50;
+			InvalidateRect(hwndMain, &rt, TRUE);
 			break;
 		case VK_NEXT:
-			cout << "pgdn" << endl;
-			scroll -= 15;
-			InvalidateRect(hwndMain, &rt, FALSE);
+			scroll -= 50;
+			InvalidateRect(hwndMain, &rt, TRUE);
 			break;
 
 		case VK_RETURN:
 		{
 			scroll = 0;
 			ret.clear();
+			//ret.shrink_to_fit();
 			images.clear();
 			imageSize.clear();
 			threads.clear();
@@ -162,7 +138,7 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 			{
 				ret.push_back(userInterface.getHelpText());
 			}
-			else if (curState == GOSTATE)
+			else if (curState == GOSTATE || curState == BACKSTATE || curState == FORWARDSTATE || curState == HOMESTATE)
 			{
 				hyperLinkMap.clear();
 				string uri = userInterface.getURI();
@@ -170,24 +146,6 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 			}
 			else if (curState == REFRESHSTATE)
 			{
-				string uri = userInterface.getURI();
-				getDataFromServer(uri);
-			}
-			else if (curState == BACKSTATE)
-			{
-				hyperLinkMap.clear();
-				string uri = userInterface.getURI();
-				getDataFromServer(uri);
-			}
-			else if (curState == FORWARDSTATE)
-			{
-				hyperLinkMap.clear();
-				string uri = userInterface.getURI();
-				getDataFromServer(uri);
-			}
-			else if (curState == HOMESTATE)
-			{
-				hyperLinkMap.clear();
 				string uri = userInterface.getURI();
 				getDataFromServer(uri);
 			}
@@ -210,7 +168,11 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 				}
 				getDataFromServer(hyperURI);
 			}
-			InvalidateRect(hwndMain, NULL, FALSE);
+			else if (curState == NOTVALIDSTATE)
+			{
+				ret.push_back("명령어를 잘못 입력하셨습니다\n");
+			}
+			InvalidateRect(hwndMain, &rt, TRUE);
 			break;
 		}
 		case VK_BACK:
@@ -229,7 +191,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	HDC hdc;
 	PAINTSTRUCT ps;
 	int len = 0;
-	int imageCount = 0;
 
 	hwndMain = hWnd;
 	HBITMAP hBMP, hOldBmp;
@@ -243,6 +204,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	RECT rect;
 	int width;
 	int height;
+
 	if (GetWindowRect(hWnd, &rect))
 	{
 		rect.left = 10;
@@ -252,6 +214,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	}
 	rt = rect;
 	rect.top += 20;
+
 	switch (iMessage)
 	{
 	case WM_CREATE:
@@ -259,29 +222,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		hEdit = CreateWindow("edit", NULL, WS_CHILD | WS_VISIBLE | WS_BORDER |
 			ES_AUTOHSCROLL, 250, 10, 300, 25, hWnd, (HMENU)NULL, g_hInst, NULL);
 		origLVEditWndProc = (WNDPROC)SetWindowLong(hEdit, GWL_WNDPROC, (DWORD)LVEditWndProc);
-		return 0;
 
 	case WM_KEYDOWN:
 	{
 		switch (wParam)
 		{
 		case VK_PRIOR:
-			cout << "pgup" << endl;
-			scroll += 15;
-			InvalidateRect(hwndMain, &rt, FALSE);
+			scroll += 50;
+			InvalidateRect(hwndMain, &rt, TRUE);
 			break;
 		case VK_NEXT:
-			cout << "pgdn" << endl;
-			scroll -= 15;
-			InvalidateRect(hwndMain, &rt, FALSE);
+			scroll -= 50;
+			InvalidateRect(hwndMain, &rt, TRUE);
 			break;
 		}
 	}
 
 	case WM_PAINT:
 	{
+		int imageCount = 0;
 		hdc = BeginPaint(hWnd, &ps);
-		FillRect(hdc, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
+		//FillRect(hdc, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
 		rect.top += scroll;
 		// bmp local image load with double buffering
 		if (LoadBitmapFromBMPFile("nexon.bmp", &hBMP, &hPalette, 0))
@@ -293,12 +254,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			RealizePalette(hdc);
 			BitBlt(hdc, 0, 0, bm.bmWidth, bm.bmHeight,
 				hMemDC, 0, 0, SRCCOPY);
-
 			SelectObject(hMemDC, hOldBmp);
 			DeleteObject(hBMP);
 			SelectPalette(hdc, hOldPalette, FALSE);
 			DeleteObject(hPalette);
 		}
+		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+		ULONG_PTR gdiplusToken;
+		Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+		Graphics graphics(hdc);
 
 		for (int i = 0; i < ret.size(); i++)
 		{
@@ -308,6 +272,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				if (ret[i].substr(ret[i].length() - 5, 5) == "image")
 				{
 					imageCount++;
+					//continue;
 				}
 				int fontSize = 15;
 				if (ret[i].substr(ret[i].length() - 5, 5) == "title")
@@ -390,14 +355,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				DeleteObject(font);
 				rect.top += fontSize + 30;
 			}
-			else
+			else if (ret[i] == "image")
 			{
 				// image tag일 경우
-				Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-				ULONG_PTR gdiplusToken;
-				Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-				Graphics graphics(hdc);
-
 				unordered_map<int, int>::iterator FindImageSize = imageSize.find(imageCount);
 				// 찾았다면
 				if (FindImageSize != imageSize.end())
@@ -436,14 +396,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 							}
 							rect.top += pImage->GetHeight();
 						}
-						replace(ret, ret[i], "image");
-					}
-					
-				}
-				
+					}				
+				}			
 				imageCount++;
 			}
 		}
+		maxHeight = rect.top;
 		EndPaint(hWnd, &ps);
 		return 0;
 	}
@@ -498,10 +456,9 @@ void imageRequset(string tempuri, int index)
 	char *ipaddress;
 	vector<char> image;
 
-	Uri *uri = new Uri;//::Parse(tempuri);
+	Uri *uri = new Uri;
 	Uri resultURL = uri->Parse(tempuri);
 	resultURL.Parse(tempuri);
-	//tempuri = tempuri.erase(tempuri.length() - 1, 1);
 	if (resultURL.getProtocol() == "http" || resultURL.getProtocol() == "")
 	{
 		char *ipaddress = HostToIp(resultURL.getHost());
@@ -542,7 +499,7 @@ void imageRequset(string tempuri, int index)
 			die_with_wserror("send() sent a different number of bytes than expected");
 
 		//get response
-		cout << "response" << endl;
+		//cout << "response" << endl;
 		response = "";
 		resp_leng = BUFFERSIZE;
 
@@ -572,28 +529,28 @@ void imageRequset(string tempuri, int index)
 			binary[j] = image[k];
 			j++;
 		}
+		mtx.lock();
 		char *temp = strstr(binary, "\n\n");
 		if (temp == NULL)
 		{
 			temp = strstr(binary, "\r\n\r\n");
-			images.insert(pair<int, char*>(index, &temp[4]));
-			imagecache.insert(pair<string, char*>(tempuri, &temp[4]));
+			if (temp != NULL)
+			{
+				images.insert(pair<int, char*>(index, &temp[4]));
+				imagecache.insert(pair<string, char*>(tempuri, &temp[4]));
+			}
 		}
 		else
 		{
 			images.insert(pair<int, char*>(index, &temp[2]));
 			imagecache.insert(pair<string, char*>(tempuri, &temp[2]));
 		}
-		imagecache.insert(pair<string, char*>(tempuri, &temp[4]));
-		imagecacheSize.insert(pair<string, int>(tempuri, imageLen));
+		imagecacheSize.insert(pair<string, int>(tempuri, image.size()));
 		replace(ret, tempuri+"\"image", "image");
-		imageSize.insert(pair<int, int>(index, imageLen));
+		imageSize.insert(pair<int, int>(index, image.size()));
+		mtx.unlock();
+		InvalidateRect(hwndMain, &rt, TRUE);
 	}
-	else
-	{
-		ret.push_back("image failed");
-	}
-	InvalidateRect(hwndMain, &rt, FALSE);
 }
 
 void getDataFromServer(string uri)
@@ -624,7 +581,7 @@ void getDataFromServer(string uri)
 				{
 					vector<char> tempimage;
 					unordered_map<string, char*>::iterator FindIter = imagecache.find(ret[i].substr(0, ret[i].length() - 6));
-					// 찾았다면
+					// cache image 찾았다면
 					if(FindIter != imagecache.end())
 					{
 						images.insert(pair<int, char*>(count, FindIter->second));
@@ -634,11 +591,8 @@ void getDataFromServer(string uri)
 					}
 					else
 					{
-						if (count < 6)
-						{
-							threads.push_back(thread(imageRequset, ret[i].substr(0, ret[i].length() - 6), count));
-							count++;
-						}
+						threads.push_back(thread(imageRequset, ret[i].substr(0, ret[i].length() - 6), count));
+						count++;
 					}
 				}
 			}

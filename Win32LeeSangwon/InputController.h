@@ -25,10 +25,10 @@ private:
 	string curUserHyperLinkText;
 public:
 	InputController();
-	STATE getState(string);
+	STATE getState(const string&);
 	string getHelpText();
 	string getURI(); 
 	vector<string> getURIList();
 	string getUserHyperLinkText();
-	void pushHyperLinkURI(string);
+	void pushHyperLinkURI(const string&);
 };

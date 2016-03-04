@@ -1,8 +1,13 @@
 ﻿  main.cpp
-c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(202): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(308): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(246): warning C4101: 'hdcBuffer' :참조되지 않은 지역 변수입니다.
-c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(576): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(504): warning C4101: 'ipaddress' :참조되지 않은 지역 변수입니다.
-c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(632): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(191): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(303): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(238): warning C4101: 'hdcBuffer' :참조되지 않은 지역 변수입니다.
+c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(563): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(492): warning C4101: 'ipaddress' :참조되지 않은 지역 변수입니다.
+c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\main.cpp(614): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+  HttpConnector.cpp
+  코드를 생성하고 있습니다...
+  건너뛰고 있습니다... (관련된 변경 내용 없음)
+  Uri.cpp
+  InputController.cpp
   Win32LeeSangwon.vcxproj -> C:\Users\leesangwon0114\Downloads\Win32LeeSangwon\Win32LeeSangwon\Debug\Win32LeeSangwon.exe

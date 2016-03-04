@@ -2,10 +2,7 @@
 #include <codecvt>
 #include <atlstr.h>
 
-HttpConnector::HttpConnector()
-{
-	request = response = "";
-}
+HttpConnector::HttpConnector() :request(""), response("") {}
 
 string HttpConnector::getResponse()
 {
@@ -42,7 +39,7 @@ char* HttpConnector::HostToIp(const string& host) {
 }
 
 // HTML 요청
-string HttpConnector::httpConnect(string tempuri) {
+string HttpConnector::httpConnect(const string& tempuri) {
 	Uri *uri = new Uri;
 	resultURL = uri->Parse(tempuri);
 	resultURL.Parse(tempuri);
@@ -64,7 +61,7 @@ string HttpConnector::httpConnect(string tempuri) {
 		}
 		string path = resultURL.getPath();
 		
-		if (path == "")
+		if (path == "" && resultURL.getHost() == "www.naver.com")
 		{
 			path = "/";
 		}
@@ -133,6 +130,7 @@ string HttpConnector::httpConnect(string tempuri) {
 
 // image 받아오기
 // vector<char>로 이미지 content-length 없을 때 Size를 알기 위해 vector<char> 사용 but... copy 때 성능 문제!
+/*
 vector<char> HttpConnector::getImage(string tempuri) {
 	image.clear();
 	Uri *uri = new Uri;//::Parse(tempuri);
@@ -156,7 +154,7 @@ vector<char> HttpConnector::getImage(string tempuri) {
 		if (resultURL.getHost() == "sang12456.cafe24.com")
 			request = "GET " + path + " HTTP/1.1\r\n\r\n";
 		else
-			request = "GET " + path + " HTTP/1.1\nHost: " + resultURL.getHost() + "\r\n\r\n";//"\nConnection : keep - alive\nCache - Control : max - age = 0\nAccept : text / html, application / xhtml + xml, application / xml; q = 0.9, image / webp, */*;q=0.8\nUpgrade-Insecure-Requests: 1\nUser-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36\nAccept-Encoding: gzip, deflate, sdch\nAccept-Language: ko-KR,ko;q=0.8,en-US;q=0.6,en;q=0.4\r\n\r\n";
+			request = "GET " + path + " HTTP/1.1\nHost: " + resultURL.getHost() + "\r\n\r\n";//"\nConnection : keep - alive\nCache - Control : max - age = 0\nAccept : text / html, application / xhtml + xml, application / xml; q = 0.9, image / webp, *;q=0.8\nUpgrade-Insecure-Requests: 1\nUser-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36\nAccept-Encoding: gzip, deflate, sdch\nAccept-Language: ko-KR,ko;q=0.8,en-US;q=0.6,en;q=0.4\r\n\r\n";
 
 		//init winsock
 		if (WSAStartup(MAKEWORD(2, 0), &wsaData) != 0)
@@ -200,3 +198,4 @@ vector<char> HttpConnector::getImage(string tempuri) {
 
 	return image;
 }
+*/

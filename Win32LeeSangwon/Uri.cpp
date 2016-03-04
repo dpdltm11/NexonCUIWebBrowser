@@ -1,9 +1,6 @@
 #include "Uri.h"
 
-Uri::Uri()
-{
-	QueryString = Path = Protocol = Host = Port = "";
-}
+Uri::Uri() : QueryString(""), Path(""), Protocol(""), Host(""), Port(""){}
 
 string Uri::getPath()
 {

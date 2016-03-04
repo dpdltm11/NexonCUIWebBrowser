@@ -1,12 +1,8 @@
 #include "InputController.h"
 
-InputController::InputController()
-{
-	curIndex = 0;
-	helpText = "help/HELP:   help/HELP\n\n   사용할 수 있는 명령어를 보여줍니다.\n\ngo/GO:   go/GO [URI]\n\n   URI로 이동합니다.\n\nhgo/HGO:   hgo/HGO 하이퍼텍스트\n\n   하이퍼텍스트 링크로 이동합니다.\n\nrefresh/REFRESH:   refresh/REFRESH\n\n   새로고침\n\nb/B:   b/B\n\n   뒤로가기\n\nnf/F:   f/F\n\n   앞으로 가기\n\nhome/HOME:   home/HOME\n\n   맨 처음화면으로 가기\n\nls/LS:   ls/LS\n\n   URI 로그 출력하기";
-}
+InputController::InputController() : curIndex(0), helpText("help/HELP:   help/HELP\n\n   사용할 수 있는 명령어를 보여줍니다.\n\ngo/GO:   go/GO [URI]\n\n   URI로 이동합니다.\n\nhgo/HGO:   hgo/HGO 하이퍼텍스트\n\n   하이퍼텍스트 링크로 이동합니다.\n\nrefresh/REFRESH:   refresh/REFRESH\n\n   새로고침\n\nb/B:   b/B\n\n   뒤로가기\n\nf/F:   f/F\n\n   앞으로 가기\n\nhome/HOME:   home/HOME\n\n   맨 처음화면으로 가기\n\nls/LS:   ls/LS\n\n   URI 로그 출력하기") {}
 
-STATE InputController::getState(string usrSendString)
+STATE InputController::getState(const string& usrSendString)
 {	
 	STATE curState = NOTVALIDSTATE;
 	
@@ -14,8 +10,7 @@ STATE InputController::getState(string usrSendString)
 	{
 		return curState;
 	}
-	userInput = usrSendString;
-	const string &input = userInput;
+	const string &input = usrSendString;
 	if (input == "help" || input == "HELP")
 	{
 		curState = HELPSTATE;
@@ -105,7 +100,7 @@ string InputController::getUserHyperLinkText()
 	return curUserHyperLinkText;
 }
 
-void InputController::pushHyperLinkURI(string uri)
+void InputController::pushHyperLinkURI(const string& uri)
 {
 	uriList.push_back(uri);
 	curIndex = uriList.size() - 1;
