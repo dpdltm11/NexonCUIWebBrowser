@@ -4,11 +4,6 @@
 
 HttpConnector::HttpConnector() :request(""), response("") {}
 
-string HttpConnector::getResponse()
-{
-	return response;
-}
-
 void HttpConnector::die_with_error(char *errorMessage)
 {
 	cout << errorMessage << endl;

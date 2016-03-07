@@ -26,9 +26,9 @@ private:
 public:
 	InputController();
 	STATE getState(const string&);
-	string getHelpText();
-	string getURI(); 
-	vector<string> getURIList();
-	string getUserHyperLinkText();
+	inline vector<string> InputController::getURIList()	{ return uriList; }
+	inline string InputController::getHelpText() { return helpText; }
+	inline string InputController::getURI()	{ return uriList[curIndex];	}
+	inline string InputController::getUserHyperLinkText() { return curUserHyperLinkText; }
 	void pushHyperLinkURI(const string&);
 };

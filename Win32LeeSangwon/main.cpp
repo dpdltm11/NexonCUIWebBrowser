@@ -263,19 +263,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		ULONG_PTR gdiplusToken;
 		Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 		Graphics graphics(hdc);
-
+		Graphics memGraphics(hMemDC);
 		for (int i = 0; i < ret.size(); i++)
 		{
 			// 텍스트 tag일 경우
 			if (ret[i] != "image")
 			{
+				int fontSize = 15;
 				if (ret[i].substr(ret[i].length() - 5, 5) == "image")
 				{
 					imageCount++;
 					//continue;
 				}
-				int fontSize = 15;
-				if (ret[i].substr(ret[i].length() - 5, 5) == "title")
+				else if (ret[i].substr(ret[i].length() - 5, 5) == "title")
 				{
 					fontSize = 35;
 					font = CreateFont(fontSize, 0, 0, 0, FW_HEAVY, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, 0, "돋움");
@@ -376,24 +376,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 						IStream* pStream = NULL;
 						if (CreateStreamOnHGlobal(hGlobal, TRUE, &pStream) == S_OK)
 						{
-							//Image *testImage = Image::FromStream(pStream);
-							//graphics.DrawImage(testImage, rect.left, rect.top);	
-							Bitmap *pImage = Bitmap::FromStream(pStream);
-							pImage->GetHBITMAP(Color::White, &hBitmap);
-							if (LoadBitmapFromBMPFile("", &hBitmap, &hPalette, 1))
-							{
-								GetObject(hBitmap, sizeof(BITMAP), &bm);
-								hMemDC = CreateCompatibleDC(hdc);
-								hOldBitmap = (HBITMAP)SelectObject(hMemDC, hBitmap);
-								hOldPalette = SelectPalette(hdc, hPalette, FALSE);
-								RealizePalette(hdc);
-								BitBlt(hdc, rect.left, rect.top, bm.bmWidth, bm.bmHeight,
-									hMemDC, 0, 0, SRCCOPY);
-								SelectObject(hMemDC, hOldBitmap);
-								DeleteObject(hBitmap);
-								SelectPalette(hdc, hOldPalette, FALSE);
-								DeleteObject(hPalette);
-							}
+							Image *pImage = Image::FromStream(pStream);
+							graphics.DrawImage(pImage, rect.left, rect.top);
 							rect.top += pImage->GetHeight();
 						}
 					}				
@@ -529,6 +513,7 @@ void imageRequset(string tempuri, int index)
 			binary[j] = image[k];
 			j++;
 		}
+		// 임계영역
 		mtx.lock();
 		char *temp = strstr(binary, "\n\n");
 		if (temp == NULL)

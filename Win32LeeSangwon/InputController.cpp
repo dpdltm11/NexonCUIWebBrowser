@@ -80,25 +80,6 @@ STATE InputController::getState(const string& usrSendString)
 	return curState;
 }
 
-vector<string> InputController::getURIList()
-{
-	return uriList;
-}
-
-string InputController::getHelpText()
-{
-	return helpText;
-}
-
-string InputController::getURI()
-{
-	return uriList[curIndex];
-}
-
-string InputController::getUserHyperLinkText()
-{
-	return curUserHyperLinkText;
-}
 
 void InputController::pushHyperLinkURI(const string& uri)
 {

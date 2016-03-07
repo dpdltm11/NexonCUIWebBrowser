@@ -77,18 +77,3 @@ vector<char> Parser::imageParser(const string &imageresult)
 	vector<char> data(imageBinary.c_str(), imageBinary.c_str() + imageBinary.length());	
 	return data;
 }
-
-string Parser::getHtml()
-{
-	return html;
-}
-
-string Parser::getstatusNum()
-{
-	return statusNum;
-}
-
-string Parser::getstatus()
-{
-	return status;
-}

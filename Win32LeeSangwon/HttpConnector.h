@@ -25,7 +25,7 @@ private:
 public:
 	HttpConnector();
 	string httpConnect(const string&);
-	string getResponse();
+	inline string HttpConnector::getResponse() { return response; }
 	//vector<char> getImage(string);
 	char* HostToIp(const string& host);
 	void die_with_error(char *errorMessage);

@@ -23,9 +23,7 @@ public:
 	string removeTag(string,string, int);
 	void moreParse(const string &);
 	string getTag(string tag);
-	string getTitle();
-	string geth1();
-	vector<string> getResult();
-	vector<string> getkeyHyperLink();
-	unordered_map< string, string > getHyperLink();
+	inline vector<string> HTMLParser::getResult() { return result; }
+	inline vector<string> HTMLParser::getkeyHyperLink() { return keyHyperLink; }
+	inline unordered_map<string, string> HTMLParser::getHyperLink() { return hyperLink; }
 };

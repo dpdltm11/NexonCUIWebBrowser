@@ -2,26 +2,6 @@
 
 Uri::Uri() : QueryString(""), Path(""), Protocol(""), Host(""), Port(""){}
 
-string Uri::getPath()
-{
-	return Path;
-}
-
-string Uri::getProtocol()
-{
-	return Protocol;
-}
-
-string Uri::getHost()
-{
-	return Host;
-}
-
-string Uri::getPort()
-{
-	return Port;
-}
-
 Uri Uri::Parse(const string &uri)
 {
 	Uri result;

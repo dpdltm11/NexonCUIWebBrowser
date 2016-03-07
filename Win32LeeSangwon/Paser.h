@@ -23,8 +23,8 @@ public:
 	Parser();
 	Parser(const string &);
 	vector<char> imageParser(const string &);
-	string getHtml();
-	string getstatusNum();
-	string getstatus();
+	inline string Parser::getHtml()	{ return html; }
+	inline string Parser::getstatusNum() { return statusNum; }
+	inline string Parser::getstatus() { return status; }
 };
 

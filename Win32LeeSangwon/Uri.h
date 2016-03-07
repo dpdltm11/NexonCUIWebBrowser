@@ -12,9 +12,9 @@ private:
 	string QueryString, Path, Protocol, Host, Port;
 public:
 	Uri();
-	string getPath();
-	string getProtocol();
-	string getHost();
-	string getPort(); 
+	inline string getPath() { return Path; };
+	inline string getProtocol() { return Protocol; };
+	inline string getHost() { return Host; };
+	inline string getPort() { return Port; };
 	Uri Parse(const string &);
 };

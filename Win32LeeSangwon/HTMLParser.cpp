@@ -144,28 +144,3 @@ string HTMLParser::removeTag(string tag, string tagname, int len)
 	temp = temp.erase(0, 1);
 	return temp;
 }
-
-string HTMLParser::getTitle()
-{
-	return title;
-}
-
-string HTMLParser::geth1()
-{
-	return h1;
-}
-
-vector<string> HTMLParser::getResult()
-{
-	return result;
-}
-
-vector<string> HTMLParser::getkeyHyperLink()
-{
-	return keyHyperLink;
-}
-
-unordered_map<string, string> HTMLParser::getHyperLink()
-{
-	return hyperLink;
-}
