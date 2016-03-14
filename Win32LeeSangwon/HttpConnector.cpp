@@ -56,7 +56,7 @@ string HttpConnector::httpConnect(const string& tempuri) {
 		}
 		string path = resultURL.getPath();
 		
-		if (path == "" && resultURL.getHost() == "www.naver.com")
+		if (path == "" && resultURL.getHost()!="www.google.com")
 		{
 			path = "/";
 		}

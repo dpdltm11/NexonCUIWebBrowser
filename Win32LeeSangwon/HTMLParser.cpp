@@ -32,6 +32,55 @@ vector<string> htmlsplit(const string &s, char delim) {
 HTMLParser::HTMLParser(string text) : html(text)
 {
 	moreParse(text);
+	//testParse(text);
+}
+
+void HTMLParser::testParse(const string &resource)
+{
+	typedef string::const_iterator iterator_t;
+
+	if (resource.length() == 0)
+		return;
+
+	iterator_t htmlEnd = resource.end();
+	iterator_t parseStart = find(resource.begin(), htmlEnd, '<');
+	iterator_t current = parseStart;
+	iterator_t currentEnd = find(resource.begin(), htmlEnd, '>');
+	string tag(current+1, currentEnd);
+	vector<string> tempSplit = htmlsplit(tag, ' ');
+	string tagname = tempSplit[0];
+	Node *initNode = new Node(tagname);
+	head = initNode;
+	string nextResource = string(currentEnd + 1,  htmlEnd);
+	recursion(nextResource, tagname, initNode);
+}
+
+void HTMLParser::recursion(const string &resource, const string &curtagname, Node* curNode)
+{
+	typedef string::const_iterator iterator_t;
+	string curtag = curtagname;
+	while (curtag != curtagname)
+	{
+		iterator_t htmlEnd = resource.end();
+		iterator_t parseStart = find(resource.begin(), htmlEnd, '<');
+		iterator_t current = parseStart;
+		iterator_t currentEnd = find(resource.begin(), htmlEnd, '>');
+		string tag(current+1, currentEnd);
+		vector<string> tempSplit = htmlsplit(tag, ' ');
+		string tagname = tempSplit[0];
+		if (tagname == ("/" + curtagname))
+		{
+			string content = string(resource.begin(), parseStart);
+			curNode->setTagContent(content);
+		}
+		else
+		{
+			Node *newNode = new Node(tagname);
+			curNode->insertNode(newNode);
+			string restHtml = string(currentEnd + 1, htmlEnd);
+			recursion(restHtml, tag, newNode);
+		}
+	}
 }
 
 void HTMLParser::moreParse(const string &resource)
@@ -107,29 +156,29 @@ void HTMLParser::moreParse(const string &resource)
 string HTMLParser::getTag(string tag)
 {
 	string htag = tag.substr(0, 2);
-	if (htag == "h1" || htag == "h2" || htag == "h3" || htag == "h4" || htag == "h5" || htag == "h6")
+	if (tag.substr(0, 2) == "a ")
 	{
-		return htag;
-	}
-	else if (tag.substr(0, 5) == "title")
-	{
-		return "title";
+		return "a";
 	}
 	else if (tag.substr(0, 1) == "p")
 	{
 		return "p";
 	}
-	else if (tag.substr(0, 2) == "a ")
+	else if (htag == "h1" || htag == "h2" || htag == "h3" || htag == "h4" || htag == "h5" || htag == "h6")
 	{
-		return "a";
-	}
-	else if (tag.substr(0, 6) == "center")
-	{
-		return "center";
+		return htag;
 	}
 	else if (tag.substr(0, 3) == "img")
 	{
 		return "img";
+	}
+	else if (tag.substr(0, 5) == "title")
+	{
+		return "title";
+	}
+	else if (tag.substr(0, 6) == "center")
+	{
+		return "center";
 	}
 	else
 		return "none";

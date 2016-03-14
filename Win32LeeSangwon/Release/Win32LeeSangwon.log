@@ -1,15 +1,15 @@
 ﻿  main.cpp
 main.cpp(155): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-main.cpp(267): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+main.cpp(269): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
 main.cpp(198): warning C4101: 'hOldBitmap' :참조되지 않은 지역 변수입니다.
 main.cpp(202): warning C4101: 'hdcBuffer' :참조되지 않은 지역 변수입니다.
 main.cpp(198): warning C4101: 'hBitmap' :참조되지 않은 지역 변수입니다.
-main.cpp(511): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-main.cpp(440): warning C4101: 'ipaddress' :참조되지 않은 지역 변수입니다.
+main.cpp(497): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+main.cpp(416): warning C4101: 'ipaddress' :참조되지 않은 지역 변수입니다.
 main.cpp(566): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
   코드를 생성하고 있습니다.
-  0 of 2151 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+  0 of 2164 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    6 functions had inline decision re-evaluated but remain unchanged
+    5 functions had inline decision re-evaluated but remain unchanged
   코드를 생성했습니다.
   Win32LeeSangwon.vcxproj -> C:\Users\leesangwon0114\Downloads\Win32LeeSangwon\Win32LeeSangwon\Release\Win32LeeSangwon.exe

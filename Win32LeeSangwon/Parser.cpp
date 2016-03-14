@@ -30,7 +30,8 @@ Parser::Parser(const string &result)
 	vector<string> statusArray = split(init[0], ' ');
 
 	statusNum = statusArray[1];
-	status = statusArray[2];
+	for (int i = 2; i < statusArray.size(); i++)
+	 status += statusArray[i] + " ";
 
 	if (statusNum == "200")
 	{

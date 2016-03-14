@@ -215,6 +215,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	rt = rect;
 	rect.top += 20;
 
+	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+	ULONG_PTR gdiplusToken;
+	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+
 	switch (iMessage)
 	{
 	case WM_CREATE:
@@ -259,9 +263,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			SelectPalette(hdc, hOldPalette, FALSE);
 			DeleteObject(hPalette);
 		}
-		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-		ULONG_PTR gdiplusToken;
-		Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+
 		Graphics graphics(hdc);
 		Graphics memGraphics(hMemDC);
 		for (int i = 0; i < ret.size(); i++)
@@ -270,19 +272,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			if (ret[i] != "image")
 			{
 				int fontSize = 15;
-				if (ret[i].substr(ret[i].length() - 5, 5) == "image")
-				{
-					imageCount++;
-					//continue;
-				}
-				else if (ret[i].substr(ret[i].length() - 5, 5) == "title")
-				{
-					fontSize = 35;
-					font = CreateFont(fontSize, 0, 0, 0, FW_HEAVY, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, 0, "돋움");
-					oldfont = (HFONT)SelectObject(hdc, font);
-					DrawText(hdc, (ret[i].substr(0, ret[i].length() - 5)).c_str(), -1, &rect, DT_LEFT | DT_WORDBREAK | DT_NOCLIP);
-				}
-				else if (ret[i].substr(ret[i].length() - 2, 2) == "h1")
+				if (ret[i].substr(ret[i].length() - 2, 2) == "h1")
 				{
 					fontSize = 30;
 					font = CreateFont(fontSize, 0, 0, 0, FW_ULTRABOLD, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, 0, "돋움");
@@ -324,6 +314,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					oldfont = (HFONT)SelectObject(hdc, font);
 					DrawText(hdc, (ret[i].substr(0, ret[i].length() - 2)).c_str(), -1, &rect, DT_LEFT | DT_WORDBREAK | DT_NOCLIP);
 				}
+				else if (ret[i].substr(ret[i].length() - 5, 5) == "title")
+				{
+					fontSize = 35;
+					font = CreateFont(fontSize, 0, 0, 0, FW_HEAVY, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, 0, "돋움");
+					oldfont = (HFONT)SelectObject(hdc, font);
+					DrawText(hdc, (ret[i].substr(0, ret[i].length() - 5)).c_str(), -1, &rect, DT_LEFT | DT_WORDBREAK | DT_NOCLIP);
+				}
 				else if (ret[i].substr(ret[i].length() - 9, 9) == "hyperText")
 				{
 					fontSize = 15;
@@ -335,12 +332,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				}
 				else
 				{
+					if (ret[i].substr(ret[i].length() - 5, 5) == "image")
+					{
+						imageCount++;
+						//continue;
+					}
 					fontSize = 15;
 					font = CreateFont(fontSize, 0, 0, 0, 0, 0, 0, 0, HANGEUL_CHARSET, 0, 0, 0, 0, "돋움");
 					oldfont = (HFONT)SelectObject(hdc, font);
 					if (ret[i].substr(ret[i].length() - 6, 6) == "center")
 					{
-						DrawText(hdc, (ret[i].substr(0, ret[i].length() - 2)).c_str(), -1, &rect, DT_CENTER | DT_WORDBREAK | DT_NOCLIP);
+						DrawText(hdc, (ret[i].substr(0, ret[i].length() - 6)).c_str(), -1, &rect, DT_CENTER | DT_WORDBREAK | DT_NOCLIP);
 					}
 					else if (ret[i].substr(ret[i].length() - 1, 1) == "p")
 					{
@@ -376,10 +378,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 						IStream* pStream = NULL;
 						if (CreateStreamOnHGlobal(hGlobal, TRUE, &pStream) == S_OK)
 						{
-							Image *pImage = Image::FromStream(pStream);
-							graphics.DrawImage(pImage, rect.left, rect.top);
+							//Image *pImage = Image::FromStream(pStream);
+							shared_ptr<Image> pImage(Image::FromStream(pStream));
+							graphics.DrawImage(pImage.get(), rect.left, rect.top);
 							rect.top += pImage->GetHeight();
 						}
+						delete pStream;
+						::GlobalFree(hGlobal);
 					}				
 				}			
 				imageCount++;
@@ -399,35 +404,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
 
-void die_with_error(char *errorMessage)
-{
-	cout << errorMessage << endl;
-	//exit(1);
-}
-
-void die_with_wserror(char *errorMessage)
-{
-	cout << errorMessage << ": " << WSAGetLastError() << endl;
-	//exit(1);
-}
-
-// DNS를 통한 ip주소 받아오기
-char* HostToIp(const string& host) {
-	hostent* hostname = gethostbyname(host.c_str());
-	// Init WinSock
-	WSADATA wsa_Data;
-	int wsa_ReturnCode = WSAStartup(0x101, &wsa_Data);
-	// Get the local hostname
-	struct hostent *host_entry;
-	host_entry = gethostbyname(host.c_str());
-	char * szLocalIP;
-	szLocalIP = inet_ntoa(*(struct in_addr *)*host_entry->h_addr_list);
-
-	WSACleanup();
-
-	return szLocalIP;
-}
-
 // 멀티스레드를 위한 imageRequset
 void imageRequset(string tempuri, int index)
 {
@@ -445,7 +421,17 @@ void imageRequset(string tempuri, int index)
 	resultURL.Parse(tempuri);
 	if (resultURL.getProtocol() == "http" || resultURL.getProtocol() == "")
 	{
-		char *ipaddress = HostToIp(resultURL.getHost());
+		hostent* hostname = gethostbyname(resultURL.getHost().c_str());
+		// Init WinSock
+		WSADATA wsa_Data;
+		int wsa_ReturnCode = WSAStartup(0x101, &wsa_Data);
+		// Get the local hostname
+		struct hostent *host_entry;
+		host_entry = gethostbyname(resultURL.getHost().c_str());
+		char * ipaddress;
+		ipaddress = inet_ntoa(*(struct in_addr *)*host_entry->h_addr_list);
+		WSACleanup();
+
 		int port = 0;
 		if (resultURL.getPort() == "")
 		{
@@ -464,11 +450,11 @@ void imageRequset(string tempuri, int index)
 
 																							 //init winsock
 		if (WSAStartup(MAKEWORD(2, 0), &wsaData) != 0)
-			die_with_wserror("WSAStartup() failed");
+			return;
 
 		//open socket
 		if ((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
-			die_with_wserror("socket() failed");
+			return;
 
 		//connect
 		memset(&serveraddr, 0, sizeof(serveraddr));
@@ -476,11 +462,11 @@ void imageRequset(string tempuri, int index)
 		serveraddr.sin_addr.s_addr = inet_addr(ipaddress);
 		serveraddr.sin_port = htons(port);
 		if (connect(sock, (struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0)
-			die_with_wserror("connect() failed");
+			return;
 
 		//send request
 		if (send(sock, request.c_str(), request.length(), 0) != request.length())
-			die_with_wserror("send() sent a different number of bytes than expected");
+			return;
 
 		//get response
 		//cout << "response" << endl;
@@ -515,6 +501,19 @@ void imageRequset(string tempuri, int index)
 		}
 		// 임계영역
 		mtx.lock();
+
+		char *temp;
+		if ((temp = strstr(binary, "\n\n")) != NULL)
+		{
+			images.insert(pair<int, char*>(index, &temp[2]));
+			imagecache.insert(pair<string, char*>(tempuri, &temp[2]));
+		}
+		else if ((temp = strstr(binary, "\r\n\r\n")) != NULL)
+		{
+			images.insert(pair<int, char*>(index, &temp[4]));
+			imagecache.insert(pair<string, char*>(tempuri, &temp[4]));
+		}
+		/*
 		char *temp = strstr(binary, "\n\n");
 		if (temp == NULL)
 		{
@@ -530,6 +529,7 @@ void imageRequset(string tempuri, int index)
 			images.insert(pair<int, char*>(index, &temp[2]));
 			imagecache.insert(pair<string, char*>(tempuri, &temp[2]));
 		}
+		*/
 		imagecacheSize.insert(pair<string, int>(tempuri, image.size()));
 		replace(ret, tempuri+"\"image", "image");
 		imageSize.insert(pair<int, int>(index, image.size()));
@@ -565,22 +565,28 @@ void getDataFromServer(string uri)
 			hyperLinkMap = htmlInfo->getHyperLink();
 			for (int i = 0; i < ret.size(); i++)
 			{
-				if (ret[i].substr(ret[i].length() - 5, 5) == "image")
+				if (ret[i].length() >= 5)
 				{
-					vector<char> tempimage;
-					unordered_map<string, char*>::iterator FindIter = imagecache.find(ret[i].substr(0, ret[i].length() - 6));
-					// cache image 찾았다면
-					if(FindIter != imagecache.end())
+					if (ret[i].substr(ret[i].length() - 5, 5) == "image")
 					{
-						images.insert(pair<int, char*>(count, FindIter->second));
-						imageSize.insert(pair<int, int>(count, imagecacheSize.find(ret[i].substr(0, ret[i].length() - 6))->second));
-						replace(ret, ret[i], "image");
-						count++;
-					}
-					else
-					{
-						threads.push_back(thread(imageRequset, ret[i].substr(0, ret[i].length() - 6), count));
-						count++;
+						vector<char> tempimage;
+						unordered_map<string, char*>::iterator FindIter = imagecache.find(ret[i].substr(0, ret[i].length() - 6));
+						// cache image 찾았다면
+						if (FindIter != imagecache.end())
+						{
+							images.insert(pair<int, char*>(count, FindIter->second));
+							imageSize.insert(pair<int, int>(count, imagecacheSize.find(ret[i].substr(0, ret[i].length() - 6))->second));
+							replace(ret, ret[i], "image");
+							count++;
+						}
+						else
+						{
+							if (threads.size() < 50)
+							{
+								threads.push_back(thread(imageRequset, ret[i].substr(0, ret[i].length() - 6), count));
+							}
+							count++;
+						}
 					}
 				}
 			}
