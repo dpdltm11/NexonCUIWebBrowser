@@ -1,0 +1,23 @@
+C:\Program Files (x86)\IIS Express\asp.dll
+C:\Program Files\IIS Express\asp.dll
+C:\Users\leesangwon0114\Desktop\ASP.docx
+C:\Windows\winsxs\amd64_microsoft-windows-i..pbinaries.resources_31bf3856ad364e35_6.1.7600.16385_ko-kr_a3819ff94fde0fa7\asp.mfl
+C:\Windows\winsxs\amd64_microsoft-windows-iis-aspbinaries_31bf3856ad364e35_6.1.7601.17514_none_eaaa53b67e14526e\asp.dll
+C:\Windows\winsxs\amd64_microsoft-windows-iis-aspbinaries_31bf3856ad364e35_6.1.7601.17514_none_eaaa53b67e14526e\asp.mof
+C:\Windows\winsxs\wow64_microsoft-windows-iis-aspbinaries_31bf3856ad364e35_6.1.7601.17514_none_f4fefe08b2751469\asp.dll
+C:\Windows\winsxs\wow64_microsoft-windows-iis-aspbinaries_31bf3856ad364e35_6.1.7601.17514_none_f4fefe08b2751469\asp.mof
+C:\Windows\winsxs\wow64_microsoft-windows-i..pbinaries.resources_31bf3856ad364e35_6.1.7600.16385_ko-kr_add64a4b843ed1a2\asp.mfl
+C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\VCAddClass\ATL\asp.ico
+C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\VCAddClass\ATL\ASP.vsz
+C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Packages\schemas\xml\ASP.tlb
+C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETPortable\v5.0\SupportedFrameworks\ASP.NET Core 5.0.xml
+C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\VCWizards\CodeWiz\ATL\ASP\HTML\1042\ASP.htm
+C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\VCWizards\CodeWiz\ATL\ASP\Templates\1042\asp.cpp
+C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\VCWizards\CodeWiz\ATL\ASP\Templates\1042\asp.h
+C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\VCWizards\CodeWiz\ATL\ASP\Templates\1042\asp.rgs
+C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETPortable\v4.5\Profile\Profile259\SupportedFrameworks\ASP.NET Core 5.0.frameworkxml
+C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETPortable\v4.5\Profile\Profile78\SupportedFrameworks\ASP.NET Core 5.0.frameworkxml
+C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETPortable\v4.5\Profile\Profile75\SupportedFrameworks\ASP.NET Core 5.0.frameworkxml
+C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETPortable\v4.5\Profile\Profile111\SupportedFrameworks\ASP.NET Core 5.0.frameworkxml
+C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETPortable\v4.5\Profile\Profile7\SupportedFrameworks\ASP.NET Core 5.0.frameworkxml
+C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETPortable\v4.5\Profile\Profile49\SupportedFrameworks\ASP.NET Core 5.0.frameworkxml

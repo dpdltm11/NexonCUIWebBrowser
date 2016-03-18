@@ -16,6 +16,8 @@
 #include <thread>
 #include <future>
 #include <mutex> 
+#include "FileSearch.h"
+
 using namespace Gdiplus;
 
 #pragma comment (lib, "gdiplus")
@@ -42,11 +44,13 @@ unordered_map< string, char* > imagecache;
 unordered_map< string, int > imagecacheSize;
 vector<thread> threads;
 std::mutex mtx;
+std::mutex mtx1;
 
 // url 입력(input)
 static char str[256];
 int scroll;
 InputController userInterface; 
+STATE curState;
 
 HWND hwndMain;
 HWND hEdit;
@@ -133,7 +137,7 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 			
 			// Input Control
 			string usrInput(str);
-			STATE curState = userInterface.getState(usrInput);
+			curState = userInterface.getState(usrInput);
 			if (curState == HELPSTATE)
 			{
 				ret.push_back(userInterface.getHelpText());
@@ -152,7 +156,7 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 			else if (curState == LSSTATE)
 			{
 				vector<string> urilist = userInterface.getURIList();				
-				for (int p = 0; p < urilist.size(); p++)
+				for (unsigned int p = 0; p < urilist.size(); p++)
 				{
 					ret.push_back(urilist[p]);
 				}
@@ -172,7 +176,18 @@ LRESULT CALLBACK LVEditWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 			{
 				ret.push_back("명령어를 잘못 입력하셨습니다\n");
 			}
-			InvalidateRect(hwndMain, &rt, TRUE);
+			else if (curState == FILESTATE)
+			{
+				string filename = userInterface.getFileName();
+				int threadNum = userInterface.getthreadNum();
+				// DLL 실행
+				cout << "dll " << endl;
+				auto_ptr<FileSearch> searcher(new FileSearch(hwndMain, rt));
+				searcher->search(filename, threadNum);
+				//ret.push_back("명령어를 잘못 입력하셨습니다\n");
+			}
+			if(curState != FILESTATE)
+				InvalidateRect(hwndMain, &rt, TRUE);
 			break;
 		}
 		case VK_BACK:
@@ -195,11 +210,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	hwndMain = hWnd;
 	HBITMAP hBMP, hOldBmp;
 
-	HBITMAP       hBitmap, hOldBitmap;
 	HPALETTE      hPalette, hOldPalette;
 	HDC           hMemDC;
 	BITMAP        bm;
-	HDC          hdcBuffer;
 	HFONT font, oldfont;
 	RECT rect;
 	int width;
@@ -248,6 +261,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		hdc = BeginPaint(hWnd, &ps);
 		//FillRect(hdc, &rt, (HBRUSH)GetStockObject(WHITE_BRUSH));
 		rect.top += scroll;
+
+		// dll에서 InvalidateRect를 통해서 WM_PAINT 메시지를 보낸다.
+		// 이때 찾은 Path는 path.txt 파일에 기록되고 이를 읽어 Window에 보여준다.
+		if (curState == FILESTATE)
+		{
+			// 임계영역
+			mtx1.lock();
+			ret.clear();
+			string line;
+			ifstream myfile("path.txt");
+			if (myfile.is_open())
+			{
+				while (getline(myfile, line))
+				{
+					ret.push_back(line);
+				}
+				myfile.close();
+			}
+			mtx1.unlock();
+		}
+
 		// bmp local image load with double buffering
 		if (LoadBitmapFromBMPFile("nexon.bmp", &hBMP, &hPalette, 0))
 		{
@@ -266,7 +300,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 		Graphics graphics(hdc);
 		Graphics memGraphics(hMemDC);
-		for (int i = 0; i < ret.size(); i++)
+		for (unsigned int i = 0; i < ret.size(); i++)
 		{
 			// 텍스트 tag일 경우
 			if (ret[i] != "image")
@@ -383,7 +417,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 							graphics.DrawImage(pImage.get(), rect.left, rect.top);
 							rect.top += pImage->GetHeight();
 						}
-						delete pStream;
 						::GlobalFree(hGlobal);
 					}				
 				}			
@@ -400,7 +433,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		return 0;
 	}
 	}
-
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
 
@@ -413,7 +445,6 @@ void imageRequset(string tempuri, int index)
 	struct sockaddr_in serveraddr;
 	int sock = 0;
 	WSADATA wsaData;
-	char *ipaddress;
 	vector<char> image;
 
 	Uri *uri = new Uri;
@@ -494,7 +525,7 @@ void imageRequset(string tempuri, int index)
 		char *binary = new char[imageLen];
 		memset(binary, 0, imageLen);
 		int j = 0;
-		for (int k = 0; k < image.size(); k++)
+		for (unsigned int k = 0; k < image.size(); k++)
 		{
 			binary[j] = image[k];
 			j++;
@@ -513,23 +544,6 @@ void imageRequset(string tempuri, int index)
 			images.insert(pair<int, char*>(index, &temp[4]));
 			imagecache.insert(pair<string, char*>(tempuri, &temp[4]));
 		}
-		/*
-		char *temp = strstr(binary, "\n\n");
-		if (temp == NULL)
-		{
-			temp = strstr(binary, "\r\n\r\n");
-			if (temp != NULL)
-			{
-				images.insert(pair<int, char*>(index, &temp[4]));
-				imagecache.insert(pair<string, char*>(tempuri, &temp[4]));
-			}
-		}
-		else
-		{
-			images.insert(pair<int, char*>(index, &temp[2]));
-			imagecache.insert(pair<string, char*>(tempuri, &temp[2]));
-		}
-		*/
 		imagecacheSize.insert(pair<string, int>(tempuri, image.size()));
 		replace(ret, tempuri+"\"image", "image");
 		imageSize.insert(pair<int, int>(index, image.size()));
@@ -563,7 +577,7 @@ void getDataFromServer(string uri)
 			//HTMLParser *htmlInfo = new HTMLParser(result);
 			ret = htmlInfo->getResult();
 			hyperLinkMap = htmlInfo->getHyperLink();
-			for (int i = 0; i < ret.size(); i++)
+			for (unsigned int i = 0; i < ret.size(); i++)
 			{
 				if (ret[i].length() >= 5)
 				{

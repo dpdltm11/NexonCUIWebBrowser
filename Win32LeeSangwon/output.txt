@@ -1,0 +1,4 @@
+#FileSearchLog
+C:\
+D:\
+E:\

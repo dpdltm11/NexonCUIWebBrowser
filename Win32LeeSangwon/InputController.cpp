@@ -1,6 +1,6 @@
 #include "InputController.h"
 
-InputController::InputController() : curIndex(0), helpText("help/HELP:   help/HELP\n\n   사용할 수 있는 명령어를 보여줍니다.\n\n\ngo/GO:   go/GO [URI]\n\n   URI로 이동합니다.\n\n\nhgo/HGO:   hgo/HGO [하이퍼텍스트]\n\n   하이퍼텍스트 링크로 이동합니다.\n\n\nrefresh/REFRESH:   refresh/REFRESH\n\n   새로고침\n\n\nb/B:   b/B\n\n   뒤로가기\n\n\nf/F:   f/F\n\n   앞으로 가기\n\n\nhome/HOME:   home/HOME\n\n   맨 처음화면으로 가기\n\n\nls/LS:   ls/LS\n\n   URI 로그 출력하기") {}
+InputController::InputController() : curIndex(0), helpText("help/HELP:   help/HELP\n\n   사용할 수 있는 명령어를 보여줍니다.\n\n\ngo/GO:   go/GO [URI]\n\n   URI로 이동합니다.\n\n\nhgo/HGO:   hgo/HGO [하이퍼텍스트]\n\n   하이퍼텍스트 링크로 이동합니다.\n\n\nrefresh/REFRESH:   refresh/REFRESH\n\n   새로고침\n\n\nb/B:   b/B\n\n   뒤로가기\n\n\nf/F:   f/F\n\n   앞으로 가기\n\n\nhome/HOME:   home/HOME\n\n   맨 처음화면으로 가기\n\n\nls/LS:   ls/LS\n\n   URI 로그 출력하기"), fileName(""), threadNum(0) {}
 
 STATE InputController::getState(const string& usrSendString)
 {	
@@ -73,13 +73,26 @@ STATE InputController::getState(const string& usrSendString)
 		curIndex = uriList.size() - 1;
 		curState = HGOSTATE;
 	}
+	else if (input.substr(0, 4) == "file" || input.substr(0, 4) == "FILE")
+	{
+		typedef string::const_iterator iterator_t;
+
+		iterator_t userInputEnd = input.end();
+
+		// get query start
+		iterator_t fileNameStart = find(input.begin(), userInputEnd, ' ');
+		//uriList.push_back(string(uriStart + 1, userInputEnd));
+		iterator_t threadNumStart = find(fileNameStart + 1, userInputEnd, ' ');
+		fileName = string(fileNameStart + 1, threadNumStart);	
+		threadNum = stoi(string(threadNumStart + 1, userInputEnd));		
+		curState = FILESTATE;
+	}
 	else
 	{
 		curState = NOTVALIDSTATE;
 	}
 	return curState;
 }
-
 
 void InputController::pushHyperLinkURI(const string& uri)
 {

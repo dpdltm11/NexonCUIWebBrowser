@@ -1,0 +1,68 @@
+﻿// Created by Microsoft (R) C/C++ Compiler Version 14.00.23506.0 (f00bdaba).
+//
+// c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\debug\filesearcher.tlh
+//
+// C++ source equivalent of Win32 type library filesearcher.tlb
+// compiler-generated file created 03/18/16 at 18:36:15 - DO NOT EDIT!
+
+#pragma once
+#pragma pack(push, 8)
+
+#include <comdef.h>
+
+//
+// Forward references and typedefs
+//
+
+struct __declspec(uuid("8019d2c9-3176-4ee8-8f3c-c7afa6678e3b"))
+/* LIBID */ __FileSearcher;
+struct __declspec(uuid("c282969f-9cc1-3503-92ff-4606a659189c"))
+/* dual interface */ ICalculator;
+struct /* coclass */ FileSearcher;
+
+//
+// Smart pointer typedef declarations
+//
+
+_COM_SMARTPTR_TYPEDEF(ICalculator, __uuidof(ICalculator));
+
+//
+// Type library items
+//
+
+struct __declspec(uuid("c282969f-9cc1-3503-92ff-4606a659189c"))
+ICalculator : IDispatch
+{
+    //
+    // Wrapper methods for error-handling
+    //
+
+    HRESULT doSearch (
+        long hWnd,
+        long lpRect,
+        _bstr_t n,
+        long num );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall raw_doSearch (
+        /*[in]*/ long hWnd,
+        /*[in]*/ long lpRect,
+        /*[in]*/ BSTR n,
+        /*[in]*/ long num ) = 0;
+};
+
+struct __declspec(uuid("92efbdbc-87d9-3569-93cf-ffa594cba8ab"))
+FileSearcher;
+    // interface _Object
+    // [ default ] interface ICalculator
+
+//
+// Wrapper method implementations
+//
+
+#include "c:\users\leesangwon0114\downloads\win32leesangwon\win32leesangwon\win32leesangwon\debug\filesearcher.tli"
+
+#pragma pack(pop)

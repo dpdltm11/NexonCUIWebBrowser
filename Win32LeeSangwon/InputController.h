@@ -12,6 +12,7 @@ enum STATE {
 	LSSTATE,
 	HLSSTATE,
 	HGOSTATE,
+	FILESTATE,
 	NOTVALIDSTATE
 };
 
@@ -23,6 +24,8 @@ private:
 	vector<string> uriList;
 	int curIndex;
 	string curUserHyperLinkText;
+	string fileName;
+	int threadNum;
 public:
 	InputController();
 	STATE getState(const string&);
@@ -30,5 +33,7 @@ public:
 	inline string InputController::getHelpText() { return helpText; }
 	inline string InputController::getURI()	{ return uriList[curIndex];	}
 	inline string InputController::getUserHyperLinkText() { return curUserHyperLinkText; }
+	inline string InputController::getFileName() { return fileName; }
+	inline int InputController::getthreadNum() { return threadNum; }
 	void pushHyperLinkURI(const string&);
 };
